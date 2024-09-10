@@ -1,0 +1,57 @@
+{
+  "objects": {
+    "A": {
+      "type": "Loslager",
+      "coordinates": [
+        314,
+        16
+      ]
+    },
+    "B": {
+      "type": "Loslager",
+      "coordinates": [
+        50,
+        279
+      ]
+    },
+    "C": {
+      "type": "Festlager",
+      "coordinates": [
+        318,
+        147
+      ]
+    },
+    "D": {
+      "type": "Biegesteifecke",
+      "coordinates": [
+        182,
+        145
+      ]
+    },
+    "E": {
+      "type": "Normalkrafrgelenk",
+      "coordinates": [
+        184,
+        17
+      ]
+    }
+  },
+  "connections": [
+    [
+      "B",
+      "D"
+    ],
+    [
+      "C",
+      "D"
+    ],
+    [
+      "D",
+      "E"
+    ],
+    [
+      "E",
+      "A"
+    ]
+  ]
+}

@@ -1,3 +1,4 @@
+import json
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QFileDialog, QComboBox
 from PyQt5.QtGui import QPixmap, QPainter, QPen, QCursor
 from PyQt5.QtCore import Qt, QPoint
