@@ -161,9 +161,9 @@ def analyze_connections(connections, objects):
         'origin_object': origin_id
     }
 
-def get_normalization():
+def get_normalization(label_path):
     connections = {}
-    with open('test_fachwerk.json', 'r') as file:
+    with open(label_path, 'r') as file:
         data = json.load(file)
     
     for p1, p2 in data['connections']:

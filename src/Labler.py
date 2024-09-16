@@ -9,7 +9,7 @@ class ImageLabeler(QMainWindow):
         super().__init__()
         self.setWindowTitle("Image Labeler")
         self.setGeometry(100, 100, 800, 600)
-        self.labelObjects = ["Loslager", "Festlager", "Einspannung", "Normalkrafteinspannung", "Biegesteifecke", "Gelenk", "Normalkrafrgelenk", "Querkraftgelenk",]
+        self.labelObjects = ["Loslager", "Festlager", "Einspannung", "Normalkrafteinspannung", "Biegesteifecke", "Gelenk", "Normalkraftgelenk", "Querkraftgelenk", "Losesende"]
 
         self.image_label = QLabel(self)
         self.image_label.setAlignment(Qt.AlignCenter)

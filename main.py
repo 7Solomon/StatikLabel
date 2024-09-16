@@ -14,16 +14,21 @@ def open_labeler():
     sys.exit(app.exec_())
 
 def open_system():
-    objects,conenctions = get_normalization()
+    objects,conenctions = get_normalization('./systems/03/label.json')
     app = QApplication(sys.argv)
     window = ObjectPainter(objects,conenctions)
     window.show()
     sys.exit(app.exec_())
 
 def static():
-    objects,conenctions = get_normalization()
-    test(conenctions, objects)
+    objects,conenctions = get_normalization('./systems/03/label.json')
+    result = test(conenctions, objects)
 
+    app = QApplication(sys.argv)
+    window = ObjectPainter(objects, conenctions, result = result)
+    window.show()
+    sys.exit(app.exec_())
+    
     
 if __name__ == "__main__":
     #open_labeler()

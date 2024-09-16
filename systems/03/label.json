@@ -1,0 +1,139 @@
+{
+  "objects": {
+    "A": {
+      "type": "Loslager",
+      "coordinates": [
+        1045,
+        191
+      ]
+    },
+    "B": {
+      "type": "Festlager",
+      "coordinates": [
+        1042,
+        370
+      ]
+    },
+    "C": {
+      "type": "Normalkrafteinspannung",
+      "coordinates": [
+        125,
+        185
+      ]
+    },
+    "D": {
+      "type": "Querkraftgelenk",
+      "coordinates": [
+        502,
+        191
+      ]
+    },
+    "E": {
+      "type": "Biegesteifecke",
+      "coordinates": [
+        321,
+        188
+      ]
+    },
+    "F": {
+      "type": "Biegesteifecke",
+      "coordinates": [
+        322,
+        366
+      ]
+    },
+    "G": {
+      "type": "Biegesteifecke",
+      "coordinates": [
+        680,
+        187
+      ]
+    },
+    "H": {
+      "type": "Gelenk",
+      "coordinates": [
+        859,
+        101
+      ]
+    },
+    "I": {
+      "type": "Gelenk",
+      "coordinates": [
+        865,
+        187
+      ]
+    },
+    "J": {
+      "type": "Gelenk",
+      "coordinates": [
+        1039,
+        100
+      ]
+    },
+    "K": {
+      "type": "Gelenk",
+      "coordinates": [
+        1042,
+        9
+      ]
+    }
+  },
+  "connections": [
+    [
+      "C",
+      "E"
+    ],
+    [
+      "F",
+      "E"
+    ],
+    [
+      "E",
+      "D"
+    ],
+    [
+      "D",
+      "G"
+    ],
+    [
+      "G",
+      "I"
+    ],
+    [
+      "H",
+      "I"
+    ],
+    [
+      "I",
+      "J"
+    ],
+    [
+      "H",
+      "J"
+    ],
+    [
+      "K",
+      "J"
+    ],
+    [
+      "K",
+      "H"
+    ],
+    [
+      "B",
+      "A"
+    ],
+    [
+      "B",
+      "I"
+    ],
+    [
+      "I",
+      "A"
+    ],
+    [
+      "A",
+      "J"
+    ]
+  ]
+}

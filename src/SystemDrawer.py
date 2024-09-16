@@ -5,10 +5,11 @@ from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, QPoint
 
 class ObjectPainter(QWidget):
-    def __init__(self, objects, connections):
+    def __init__(self, objects, connections, result=None):
         super().__init__()
         self.objects = objects
         self.connections = connections
+        self.result = result
         self.initUI()
     
     def initUI(self):
@@ -21,6 +22,8 @@ class ObjectPainter(QWidget):
         qp.begin(self)
         self.drawObjects(qp)
         self.drawConnections(qp)
+        if self.result:
+            self.drawPolplan(qp)
         qp.end()
 
     def drawObjects(self, qp):
@@ -28,7 +31,7 @@ class ObjectPainter(QWidget):
             'Loslager': QColor(255, 0, 0),
             'Festlager': QColor(0, 255, 0),
             'Biegesteifecke': QColor(0, 0, 255),
-            'Normalkrafrgelenk': QColor(255, 255, 0),
+            'Normalkraftgelenk': QColor(255, 255, 0),
         }
 
         self.scale_factor = 100
@@ -63,6 +66,57 @@ class ObjectPainter(QWidget):
             #    self.drawDimensionLine(qp, x1, y1, x2, y2, conn['normalized_length'])
             #else:
             #    self.drawDiagonalDimensions(qp, x1, y1, x2, y2, conn['normalized_length_x'], conn['normalized_length_y'])
+
+    def drawPolplan(self, qp):
+        line_pen = QPen(Qt.blue, 2, Qt.DotLine)
+        np_pen = QPen(Qt.red, 5)
+        
+
+        
+        widget_width = self.width()
+        widget_height = self.height()
+        
+        for scheibe in self.result['visualize'].values():
+            qp.setPen(line_pen)
+            # Scale and shift coordinates for the first point (HP1)
+            x1 = scheibe['HP1'][0] * self.scale_factor + widget_width // 2
+            y1 = -scheibe['HP1'][1] * self.scale_factor + widget_height // 2
+            
+            # Scale and shift coordinates for the second point (HP2)
+            x2 = scheibe['HP2'][0] * self.scale_factor + widget_width // 2
+            y2 = -scheibe['HP2'][1] * self.scale_factor + widget_height // 2
+            
+            # Calculate direction vector (dx, dy)
+            dx = x2 - x1
+            dy = y2 - y1
+            
+            # Normalize the direction vector to unit length
+            length = (dx**2 + dy**2)**0.5
+            dx /= length
+            dy /= length
+            
+            # Extend the line to "infinity" (far beyond the widget dimensions)
+            factor = max(widget_width, widget_height) * 2  # Extend it far beyond the visible screen
+            x_start = x1 - dx * factor
+            y_start = y1 - dy * factor
+            x_end = x2 + dx * factor
+            y_end = y2 + dy * factor
+            
+            # Draw the extended line
+            qp.drawLine(x_start, y_start, x_end, y_end)
+            
+            # Draw the point NP and labels (no change needed here)
+            x3 = scheibe['NP'][0] * self.scale_factor + widget_width // 2
+            y3 = -scheibe['NP'][1] * self.scale_factor + widget_height // 2
+            
+            qp.setPen(np_pen)
+            qp.drawPoint(x3, y3)
+            
+            # Labels for points
+            qp.drawText(x1 + 30, y1, 'HP1')
+            qp.drawText(x2 + 30, y2, 'HP2')
+            qp.drawText(x3 + 30, y3, 'NP')
+
 
     def drawDimensionLine(self, qp, x1, y1, x2, y2, length):
         offset = 20  # Offset for dimension line
