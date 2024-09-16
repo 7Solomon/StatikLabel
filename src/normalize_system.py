@@ -1,7 +1,6 @@
 import json
 import math
 import numpy as np
-from collections import defaultdict
 
 def calculate_angle(x1, y1, x2, y2):
     angle = math.degrees(math.atan2(y2 - y1, x2 - x1))

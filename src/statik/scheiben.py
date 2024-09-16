@@ -2,8 +2,8 @@ from collections import defaultdict
 import itertools
 
 import numpy as np
-from src.check_fw_for_scheiben import *
-from itertools import combinations
+from src.statik.fachwerk import *
+
 
 helper_connection_dict = {
     'connection': ["Biegesteifecke", "Gelenk", "Normalkraftgelenk", "Querkraftgelenk"],
@@ -13,7 +13,7 @@ helper_connection_dict = {
 test = {'Festlager': 'Hauptpol'}
 def find_scheiben_connections(scheiben):
     common_nodes_between_scheiben = {}
-    for (i,set1), (j,set2) in combinations(scheiben.items(), 2):
+    for (i,set1), (j,set2) in itertools.combinations(scheiben.items(), 2):
         intersection = set1['nodes'].intersection(set2['nodes'])
         common_nodes_between_scheiben[i, j] = {'node':intersection}
     return common_nodes_between_scheiben
@@ -109,48 +109,16 @@ def check_for_pole(scheibe, objects):
 
 
 
-def test(conenctions, objects):
+def get_scheiben(conenctions, objects):
     # Get Scheibe
     result = categories_connection_nodes(conenctions, objects)
     # scheiben data in schöne liste
     scheiben = {i+1:{"nodes": scheiben_data} for i, scheiben_data in enumerate(result['final_scheiben'])}
     scheiben_connection = find_scheiben_connections(scheiben)
 
-    for key,scheibe in scheiben.items():
-        scheiben[key] = check_for_pole(scheibe, objects)
-    
-    visualize = {}
-    for keys, nebenpol in scheiben_connection.items():
-
-        neben_pole = [{i3:np.array(objects[i3]['coordinates'])} for i3 in iter(nebenpol['node'])]
-
-        hauptpol_1, hauptpol_2, combinations = None, None, None
-        test_1, test_2 = [], []
-        if 'Hauptpol' in scheiben[keys[0]]:
-            i1 = scheiben[keys[0]]['Hauptpol']
-            hauptpol_1 = {i1:np.array(objects[i1]['coordinates'])}
-            combinations_1 = list(itertools.product([hauptpol_1], neben_pole))    
-            test_1.append(hauptpol_1)
-            test_2.append(combinations_1)
-        if 'Hauptpol' in scheiben[keys[1]]:
-            i2 = scheiben[keys[1]]['Hauptpol'] 
-            hauptpol_2 = {i2:np.array(objects[i2]['coordinates'])}
-            combinations = list(itertools.product([hauptpol_2], neben_pole))    
-            test_1.append(hauptpol_2)
-            test_2.append(combinations_1)
-        
-        if len(neben_pole) > 1:
-            combinations = list(itertools.combinations(neben_pole, 2))
-            
-        #print('test_1', test_1)
-        #print('test_2', test_2)
-        #visualize[keys] = {'HP':test_1, 'NP':test_2}
-        
-        #scheiben_connection[keys]['kinematisch'] =  is_point_on_line_np(hauptpol_1, hauptpol_2, neben_pole)
     return {
         'scheiben_connection':scheiben_connection,
         'scheiben': scheiben,
-        'visualize': visualize
         }
 
 
