@@ -35,12 +35,12 @@ def get_main_pole_from_object_data(objects, scheibe):
         if objects[node]['type'] == 'Normalkrafteinspannung':
             pole['type'] = "N"
             pole['node'] = node
-            #pole['rotation'] = objects[node]['rotation']
+            pole['rotation'] = objects[node]['rotation']
         
         if objects[node]['type'] == 'Querkrafteinspannung':
             pole['type'] = "Q"
             pole['node'] = node
-            #pole['rotation'] = objects[node]['rotation']
+            pole['rotation'] = objects[node]['rotation']
 
         if objects[node]['type'] == 'Festlager':
             pole['type'] = "HP"
@@ -50,8 +50,8 @@ def get_main_pole_from_object_data(objects, scheibe):
         if objects[node]['type'] == 'Loslager': 
             pole['type'] = "HWL"
             pole['node'] = node
-            #pole['rotation'] = objects[node]['rotation']
-        
+            pole['rotation'] = objects[node]['rotation']
+ 
     if len(pole) >0:
         return pole
     else:
@@ -62,9 +62,7 @@ def get_connection_pole_from_connection_data(objects, connection):
     
 
 def test(objects, scheiben, scheiben_connection):
-    #print('Objects:', objects)
-    #print('Scheiben:', scheiben)
-    #print('Scheiben Connection:', scheiben_connection)
+
     pole = {}
     for key,scheibe in scheiben.items():
         pol_element_of_scheibe = get_main_pole_from_object_data(objects, scheibe)

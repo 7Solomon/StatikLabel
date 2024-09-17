@@ -1,0 +1,90 @@
+{
+  "objects": {
+    "A": {
+      "type": "Festlager",
+      "coordinates": [
+        72,
+        305
+      ],
+      "rotation": -88.40885972880542
+    },
+    "B": {
+      "type": "Festlager",
+      "coordinates": [
+        452,
+        45
+      ],
+      "rotation": -178.33971763101718
+    },
+    "C": {
+      "type": "Biegesteifecke",
+      "coordinates": [
+        77,
+        158
+      ],
+      "rotation": null
+    },
+    "D": {
+      "type": "Gelenk",
+      "coordinates": [
+        226,
+        156
+      ],
+      "rotation": null
+    },
+    "E": {
+      "type": "Gelenk",
+      "coordinates": [
+        281,
+        104
+      ],
+      "rotation": null
+    },
+    "F": {
+      "type": "Gelenk",
+      "coordinates": [
+        444,
+        147
+      ],
+      "rotation": null
+    },
+    "G": {
+      "type": "Biegesteifecke",
+      "coordinates": [
+        339,
+        44
+      ],
+      "rotation": null
+    }
+  },
+  "connections": [
+    [
+      "A",
+      "C"
+    ],
+    [
+      "C",
+      "D"
+    ],
+    [
+      "D",
+      "F"
+    ],
+    [
+      "D",
+      "E"
+    ],
+    [
+      "E",
+      "G"
+    ],
+    [
+      "G",
+      "F"
+    ],
+    [
+      "F",
+      "B"
+    ]
+  ]
+}

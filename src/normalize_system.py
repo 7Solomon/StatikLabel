@@ -121,7 +121,11 @@ def recognize_orientation(connections, primär_axis):
     return connections
 
 def normalize_angle(angle, common_angle):
-    return abs(angle - common_angle)
+    normalized_angle = (angle % 360 + 360) % 360
+    normalized_common_angle = (common_angle % 360 + 360) % 360
+    difference = normalized_angle - normalized_common_angle
+    return abs(round(difference / 10) * 10)
+
 def normalize_coordinate(coord, origin_coord, base_length):
     normalized = (coord - origin_coord) / base_length
     return round(normalized)
@@ -150,7 +154,8 @@ def analyze_connections(connections, objects):
                 normalize_coordinate(x, origin_x, base_length),
                 normalize_coordinate(y, origin_y, base_length)
             ),
-            'type': obj_data['type']
+            'type': obj_data['type'],
+            'rotation': normalize_angle(obj_data['rotation'], common_angle_axis1) if 'rotation' in obj_data and obj_data['rotation'] != None else None
         }
     
     return {

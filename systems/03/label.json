@@ -5,7 +5,8 @@
       "coordinates": [
         1045,
         191
-      ]
+      ],
+      "rotation": 180.0
     },
     "B": {
       "type": "Festlager",
@@ -19,14 +20,16 @@
       "coordinates": [
         125,
         185
-      ]
+      ],
+      "rotation": -88.80651057601797
     },
     "D": {
       "type": "Querkraftgelenk",
       "coordinates": [
         502,
         191
-      ]
+      ],
+      "rotation": 180.0
     },
     "E": {
       "type": "Biegesteifecke",
@@ -76,6 +79,22 @@
         1042,
         9
       ]
+    },
+    "L": {
+      "type": "Losesende",
+      "coordinates": [
+        682,
+        10
+      ],
+      "rotation": null
+    },
+    "M": {
+      "type": "Losesende",
+      "coordinates": [
+        501,
+        368
+      ],
+      "rotation": null
     }
   },
   "connections": [
@@ -134,6 +153,28 @@
     [
       "A",
       "J"
+    ],
+    [
+      "M",
+      "F"
+    ],
+    [
+      "G",
+      "L"
+    ]
+  ],
+  "rotation_lines": [
+    [
+      "C",
+      -88.80651057601797
+    ],
+    [
+      "A",
+      180.0
+    ],
+    [
+      "D",
+      180.0
     ]
   ]
 }

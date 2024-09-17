@@ -39,13 +39,32 @@ class ObjectPainter(QWidget):
         for obj_id, obj in self.objects.items():
             obj_type = obj['type']
             x, y = obj['coordinates']
+            rotation = obj['rotation']
 
+            # Scale and center the coordinates
             x = x * self.scale_factor + self.width() // 2
             y = -y * self.scale_factor + self.height() // 2
 
+            # Draw the object (circle)
+            qp.setPen(QPen(Qt.black))
             qp.setBrush(colors.get(obj_type, QColor(128, 128, 128)))
             qp.drawEllipse(x - 5, y - 5, 10, 10)
             qp.drawText(x + 10, y, obj_id)
+
+            if rotation is not None:
+                # Set up the pen for a dotted line
+                pen = QPen(QColor(255, 0, 0), 5, Qt.DotLine)  # Dotted black line with width 2
+                qp.setPen(pen)
+
+                # Compute the end of the rotation line
+                length = 100  # Length of the rotation line
+                angle_radians = math.radians(rotation)
+                delta_x = length * math.cos(angle_radians)
+                delta_y = length * math.sin(angle_radians)  # Invert y for screen coordinates
+
+                # Draw the rotation line
+                qp.drawLine(x-delta_x, y-delta_y, x+delta_x, y+delta_y)
+
 
     def drawConnections(self, qp):
         pen = QPen(Qt.black, 2, Qt.SolidLine)
