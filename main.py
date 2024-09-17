@@ -6,6 +6,7 @@ from src.GUIs.Labler import ImageLabeler
 
 from src.normalize_system import get_normalization
 from src.statik.scheiben import get_scheiben
+from src.statik.scan_pole import test
 
 
 
@@ -23,10 +24,9 @@ def open_system():
     sys.exit(app.exec_())
 
 def static():
-    objects,conenctions = get_normalization('./systems/03/label.json')
+    objects, conenctions = get_normalization('./systems/03/label.json')
     result = get_scheiben(conenctions, objects)
-    print(result['scheiben'])
-    print(result['scheiben_connection'])
+    test(objects, result['scheiben'], result['scheiben_connection'])
 
     app = QApplication(sys.argv)
     window = ObjectPainter(objects, conenctions)

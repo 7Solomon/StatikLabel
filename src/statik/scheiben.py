@@ -15,7 +15,8 @@ def find_scheiben_connections(scheiben):
     common_nodes_between_scheiben = {}
     for (i,set1), (j,set2) in itertools.combinations(scheiben.items(), 2):
         intersection = set1['nodes'].intersection(set2['nodes'])
-        common_nodes_between_scheiben[i, j] = {'node':intersection}
+        if intersection:   # Just adds if exists
+            common_nodes_between_scheiben[i, j] = {'node':intersection}
     return common_nodes_between_scheiben
 
 def find_repeated_nodes(connections):
@@ -74,39 +75,6 @@ def categories_connection_nodes(conenctions, objects):
     # Get scheiben from Fachwerk
     result = detect_scheiben(conenctions, initial_scheiben=scheiben)
     return result
-
-def is_point_on_line_np(p1, p2, p3):
-    vec_p1_p2 = p2 - p1  # Vector from G to H
-    vec_p1_p3 = p3 - p1  # Vector from G to D
-
-    # Schaue ob die Punkte parralel sind
-    cross_product = np.cross(vec_p1_p2, vec_p1_p3)
-    
-    # If the cross product is (approximately) 0, the points are collinear
-    if np.isclose(cross_product, 0):
-        # Schaue ob der Punkt auf der Linie liegt
-        dot_product = np.dot(vec_p1_p3, vec_p1_p2)
-        within_bounds = 0 <= dot_product <= np.dot(vec_p1_p2, vec_p1_p2)
-        return within_bounds
-    else:
-        return False
-    
-def get_line_of_two_points(p1, p2):
-    # Get the line between two points
-    m = (p2[1] - p1[1]) / (p2[0] - p1[0])
-    b = p1[1] - m * p1[0]
-    return m, b
-
-def is_point_on_line(m,b,p):
-    return np.isclose(p[1], m * p[0] + b)
-    
-def check_for_pole(scheibe, objects):
-    # Check if pole is in the scheibe
-    for node in scheibe['nodes']:
-        if objects[node]['type'] == 'Festlager':
-            scheibe['Hauptpol'] = node
-    return scheibe
-
 
 
 def get_scheiben(conenctions, objects):
