@@ -25,49 +25,80 @@ def is_point_on_line(m,b,p):
     return np.isclose(p[1], m * p[0] + b)
 
 def get_main_pole_from_object_data(objects, scheibe):
-    pole = {}
+    pole = []
     for node in scheibe['nodes']:
+        pol = {}
         if objects[node]['type'] == 'Einspannung':
-            pole['type'] = "F"
-            pole['node'] = node
-            pole['rotation'] = None
+            pol['type'] = "F"
+            pol['node'] = node
+            pol['rotation'] = None
 
         if objects[node]['type'] == 'Normalkrafteinspannung':
-            pole['type'] = "N"
-            pole['node'] = node
-            pole['rotation'] = objects[node]['rotation']
+            pol['type'] = "FWL"
+            pol['node'] = node
+            pol['rotation'] = objects[node]['rotation']
         
         if objects[node]['type'] == 'Querkrafteinspannung':
-            pole['type'] = "Q"
-            pole['node'] = node
-            pole['rotation'] = objects[node]['rotation']
+            pol['type'] = "FWL"
+            pol['node'] = node
+            pol['rotation'] = objects[node]['rotation']
 
         if objects[node]['type'] == 'Festlager':
-            pole['type'] = "HP"
-            pole['node'] = node
-            pole['rotation'] = None
-            
+            pol['type'] = "P"
+            pol['node'] = node
+            pol['rotation'] = None
+        
         if objects[node]['type'] == 'Loslager': 
-            pole['type'] = "HWL"
-            pole['node'] = node
-            pole['rotation'] = objects[node]['rotation']
- 
+            pol['type'] = "WL"
+            pol['node'] = node
+            pol['rotation'] = objects[node]['rotation']
+        pole.append(pol)
+    pole = [_ for _ in pole if _.__len__() > 0]
     if len(pole) >0:
         return pole
     else:
         return None
     
-def get_connection_pole_from_connection_data(objects, connection):
-    print(connection)
+def get_bind_pole(pole):
+    new_disscoverd_pole = {}
+    for i,((keya,keyb), value) in enumerate(pole.items()):
+        for pol in value:
+            if pol['type'] == 'P':
+                for j, ((key2a,key2b), value2) in enumerate(pole.items()):
+                    if i != j:    
+                        if key2a == keya:
+                            new_disscoverd_pole.setdefault((key2b, keyb),[]).append({'type': 'WL', 'node': value2[0]['node']})  # Mann kann auch value nehmen
+                        if key2b == keya:
+                            new_disscoverd_pole.setdefault((key2a, keyb),[]).append({'type': 'WL', 'node': value2[0]['node']})
+                        if key2a == keyb:
+
+                            new_disscoverd_pole.setdefault((key2b, keya),[]).append({'type': 'WL', 'node': value2[0]['node']})
+                        if key2b == keyb:
+                            new_disscoverd_pole.setdefault((key2a, keya),[]).append({'type': 'WL', 'node': value2[0]['node']})
+                
+    return new_disscoverd_pole
+
+def combine_pole(pole1,pole2,pol3):
+    combined_pole = pole1.copy()
+    for key, value in pole2.items():
+        if key in combined_pole:
+            combined_pole[key].extend(value)
+        else:
+            combined_pole[key] = value
     
+    for key, value in pol3.items():
+        if key in combined_pole:
+            combined_pole[key].extend(value)
+        else:
+            combined_pole[key] = value
+    return combined_pole
 
-def test(objects, scheiben, scheiben_connection):
-
-    pole = {}
+def get_all_pole(objects, scheiben, scheiben_connection):
+    main_pole = {}
     for key,scheibe in scheiben.items():
         pol_element_of_scheibe = get_main_pole_from_object_data(objects, scheibe)
         if pol_element_of_scheibe is not None:
-            pole[(key,0)] = pol_element_of_scheibe
-    
-    print(pole)
-    get_connection_pole_from_connection_data(objects, scheiben_connection)
+            main_pole[(key,0)] = pol_element_of_scheibe
+    bind_pole = get_bind_pole(main_pole)
+    return combine_pole(main_pole,bind_pole,scheiben_connection)
+     

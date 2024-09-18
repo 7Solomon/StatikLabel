@@ -15,8 +15,9 @@ def find_scheiben_connections(scheiben):
     common_nodes_between_scheiben = {}
     for (i,set1), (j,set2) in itertools.combinations(scheiben.items(), 2):
         intersection = set1['nodes'].intersection(set2['nodes'])
+
         if intersection:   # Just adds if exists
-            common_nodes_between_scheiben[i, j] = {'node':intersection}
+            common_nodes_between_scheiben[i, j] = [{'type': 'P','node':_} for _ in intersection]
     return common_nodes_between_scheiben
 
 def find_repeated_nodes(connections):
