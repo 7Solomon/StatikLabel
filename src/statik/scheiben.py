@@ -84,7 +84,6 @@ def get_scheiben(conenctions, objects):
     # scheiben data in schöne liste
     scheiben = {i+1:{"nodes": scheiben_data} for i, scheiben_data in enumerate(result['final_scheiben'])}
     scheiben_connection = find_scheiben_connections(scheiben)
-
     return {
         'scheiben_connection':scheiben_connection,
         'scheiben': scheiben,

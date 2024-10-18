@@ -93,12 +93,31 @@ def combine_pole(pole1,pole2,pol3):
             combined_pole[key] = value
     return combined_pole
 
+def sort_poles_to_scheiben(pole):
+    grouped = {}
+    for key,vaulue in pole.items():
+        for group_key in key:
+            if group_key != 0:         # Wichtig für die (n,0) Pole das die nicht in die Gruppe kommen
+                if group_key not in grouped:
+                    grouped[group_key] = []
+                if vaulue not in grouped[group_key]: 
+                    grouped[group_key].extend(vaulue)
+    return grouped
+       
+
+
 def get_all_pole(objects, scheiben, scheiben_connection):
     main_pole = {}
     for key,scheibe in scheiben.items():
         pol_element_of_scheibe = get_main_pole_from_object_data(objects, scheibe)
         if pol_element_of_scheibe is not None:
             main_pole[(key,0)] = pol_element_of_scheibe
-    bind_pole = get_bind_pole(main_pole)
-    return combine_pole(main_pole,bind_pole,scheiben_connection)
+    
+    bind_pole = get_bind_pole(main_pole)     # Bind pole are the not trivial poles that comec from combination of two poles
+    pole_of_scheiben = sort_poles_to_scheiben({**main_pole, **scheiben_connection})
+    pole =  combine_pole(main_pole,bind_pole,scheiben_connection)
+    return {
+        'pole_of_scheiben':pole_of_scheiben,
+        'pole': pole
+    }
      

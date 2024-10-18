@@ -7,7 +7,7 @@ from src.GUIs.Labler import ImageLabeler
 from src.normalize_system import get_normalization
 from src.statik.scheiben import get_scheiben
 from src.statik.scan_pole import get_all_pole
-from src.statik.check_statik import check
+from src.statik.check_statik import check_static_of_groud_scheiben
 
 
 def open_labeler():
@@ -25,9 +25,9 @@ def open_system():
 
 def static():
     objects, conenctions = get_normalization('./systems/03/label.json')
-    result = get_scheiben(conenctions, objects)
-    pole = get_all_pole(objects, result['scheiben'], result['scheiben_connection'])
-    check(pole,objects)
+    scheiben = get_scheiben(conenctions, objects)
+    pol_data = get_all_pole(objects, scheiben['scheiben'], scheiben['scheiben_connection'])
+    check_static_of_groud_scheiben(pol_data['pole_of_scheiben'],objects)
 
     app = QApplication(sys.argv)
     window = ObjectPainter(objects, conenctions)
