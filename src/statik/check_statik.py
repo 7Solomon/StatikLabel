@@ -13,6 +13,26 @@ def get_line_equation(coords, rotation):
         slope = math.tan(angle)
         return ('diagonal', (slope, -slope * x + y))
 
+def check_if_all_nodes_are_on_a_line(nodes):
+    points = [node['coordinates'] for node in nodes]
+    if len(points) < 2:
+        return True  # A single point or no points are trivially collinear
+
+    # Get the first point to compare others against
+    x1, y1 = points[0]
+    x2, y2 = points[1]
+
+    # Loop through the rest of the points and compare slopes
+    for i in range(2, len(points)):
+        x3, y3 = points[i]
+        
+        # Check if the slopes (y2 - y1)/(x2 - x1) and (y3 - y1)/(x3 - x1) are equal
+        # Use cross multiplication to avoid division:
+        if (y2 - y1) * (x3 - x1) != (y3 - y1) * (x2 - x1):
+            return False
+
+    return True
+
 def check_if_WL_and_node_meet(node, WL):
     node_coords = node['coordinates']
     wl_coords, wl_rotation = WL['coordinates'], WL['rotation']
@@ -29,11 +49,28 @@ def check_if_WL_and_node_meet(node, WL):
         slope, intercept = line[1]
         return math.isclose(node_coords[1], slope * node_coords[0] + intercept, rel_tol=1e-9)
 
-def check_if_WL_meets(data1, data2, data3):
-    lines = [get_line_equation(data['coordinates'], data['rotation']) for data in (data1, data2, data3)]
+def check_if_all_WLs_and_nodes_meet(nodes, WLs):
+    if not nodes or not WLs:
+        return False
+    # Start by assuming the first node is the meeting point
+    meeting_point = nodes[0]['coordinates']
+    # Check all nodes if they are at the same meeting point
+    for node in nodes:
+        if node['coordinates'] != meeting_point:
+            return False
+    # Check all WLs to see if they pass through the meeting point
+    for WL in WLs:
+        wl_coords = WL['coordinates']
+        wl_rotation = WL['rotation']
+        if not check_if_WL_and_node_meet(meeting_point, wl_coords, wl_rotation):
+            return False 
+    return True
+
+def check_if_WL_meets(pack_of_data):
+    lines = [get_line_equation(data['coordinates'], data['rotation']) for data in pack_of_data]
     
     # Check for overlapping lines
-    if data1['coordinates'] == data2['coordinates'] == data3['coordinates']:
+    if len(set([_['coordinates'] for _ in pack_of_data]))==1 : # check if all coordinates are the same
         return True
     # Check for parallel lines
     if all(line[0] == 'horizontal' for line in lines) or all(line[0] == 'vertical' for line in lines):
@@ -106,9 +143,31 @@ def check_if_fest_per_scheibe(value, objects):
     F_indexes = [index for index, d in enumerate(value) if d['type'] == 'F']
     P_indexes = [index for index, d in enumerate(value) if d['type'] == 'P']
     WL_indexes = [index for index, d in enumerate(value) if d['type'] == 'WL']
+
     f = check_if_bestimmebar(len(F_indexes),len(P_indexes),len(WL_indexes))
+
+    
     if f > 3:
-        raise ValueError('System ist Überbestimmt!!')       ## Falsche Logic kann auch mehr sein!!
+        if len(F_indexes) == 0 and len(WL_indexes) == 0:
+            nodes = [objects[value[e]['node']] for e in P_indexes]
+            if check_if_all_nodes_are_on_a_line(nodes):
+                return False
+            else:
+                return True
+        if len(F_indexes) == 0 and len(P_indexes) == 0:
+            nodes = [objects[value[e]['node']] for e in WL_indexes]
+            if check_if_WL_meets(nodes):
+                return False
+            else:
+                return True
+        if len(F_indexes) == 0:
+            nodes = [objects[value[e]['node']] for e in P_indexes]
+            wls = [objects[value[e]['node']] for e in WL_indexes]
+            if check_if_all_WLs_and_nodes_meet(nodes, wls):
+                return False
+            else:
+                return True
+        #raise ValueError('System ist Überbestimmt!!')       ## Falsche Logic kann auch mehr sein!!
     elif f < 3:
         return False
     elif f == 3:
@@ -122,7 +181,7 @@ def check_if_fest_per_scheibe(value, objects):
                 return True
         if len(WL_indexes) == 3:
             i ,j ,k = value[WL_indexes[0]]['node'],value[WL_indexes[1]['node']], value[WL_indexes[2]['node']]
-            if check_if_WL_meets(objects[i],objects[j],objects[k]):
+            if check_if_WL_meets([objects[i],objects[j],objects[k]]):
                 return False
             else:
                 return True
@@ -135,8 +194,13 @@ def check_if_fest_per_scheibe(value, objects):
 
 
 def check_static_of_groud_scheiben(scheiben_pol_vals, objects):
+    scheiben = {}
     for key,scheiben_pol_value in scheiben_pol_vals.items():  ### Ist noch Falsch, bzw ineffizient, da es alle Pole anschaut nicht nur die (n,0)
-            print(scheiben_pol_value)
-            result = check_if_fest_per_scheibe(scheiben_pol_value,objects)
+        result = check_if_fest_per_scheibe(scheiben_pol_value,objects)
+        scheiben[key] = {}
+        scheiben[key]['pole'] = scheiben_pol_value
+        scheiben[key]['static'] = result
+    return scheiben
+        
 
 
