@@ -5,11 +5,15 @@ from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, QPoint
 
 class ObjectPainter(QWidget):
-    def __init__(self, objects, connections, result=None):
+    def __init__(self, objects, connections, scheiben, static_information, result=None):
         super().__init__()
         self.objects = objects
         self.connections = connections
         self.result = result
+        self.scheiben = scheiben
+        self.static_information = static_information
+        self.feste_nodes = []
+        self.get_feste_scheiben_nodes()
         self.initUI()
     
     def initUI(self):
@@ -26,9 +30,15 @@ class ObjectPainter(QWidget):
             self.drawPolplan(qp)
         qp.end()
 
+    def get_feste_scheiben_nodes(self):
+        for key,e in self.static_information.items():
+            if e['static'] == True:
+                self.feste_nodes.extend(self.scheiben['scheiben'][key]['nodes'])
+                
+
     def drawObjects(self, qp):
         colors = {
-            'Loslager': QColor(255, 0, 0),
+            'Loslager': QColor(120, 0, 0),
             'Festlager': QColor(0, 255, 0),
             'Biegesteifecke': QColor(0, 0, 255),
             'Normalkraftgelenk': QColor(255, 255, 0),
@@ -45,11 +55,19 @@ class ObjectPainter(QWidget):
             x = x * self.scale_factor + self.width() // 2
             y = -y * self.scale_factor + self.height() // 2
 
-            # Draw the object (circle)
-            qp.setPen(QPen(Qt.black))
-            qp.setBrush(colors.get(obj_type, QColor(128, 128, 128)))
-            qp.drawEllipse(x - 5, y - 5, 10, 10)
-            qp.drawText(x + 10, y, obj_id)
+
+            if obj_id in self.feste_nodes:
+                qp.setPen(QPen(Qt.black))
+                qp.setBrush(QColor(255, 0, 0))
+                qp.drawEllipse(x - 5, y - 5, 10, 10)
+                qp.drawText(x + 10, y, obj_id)
+            
+            else:
+                # Draw the object (circle)
+                qp.setPen(QPen(Qt.black))
+                qp.setBrush(colors.get(obj_type, QColor(128, 128, 128)))
+                qp.drawEllipse(x - 5, y - 5, 10, 10)
+                qp.drawText(x + 10, y, obj_id)
 
             if rotation is not None:
                 # Set up the pen for a dotted line
@@ -67,10 +85,15 @@ class ObjectPainter(QWidget):
 
 
     def drawConnections(self, qp):
-        pen = QPen(Qt.black, 2, Qt.SolidLine)
-        qp.setPen(pen)
-
         for (p1, p2), conn in self.connections.items():
+            
+            # Check if Conenction is scheiben conenction
+            if p1 in self.feste_nodes and p2 in self.feste_nodes:
+                qp.setPen(QPen(Qt.red, 2, Qt.SolidLine))  # Red lines for connections in 'scheiben'
+            else:
+                qp.setPen(QPen(Qt.black, 2, Qt.SolidLine))  # Black for other connections
+
+
             x1, y1 = self.objects[p1]['coordinates']
             x2, y2 = self.objects[p2]['coordinates']
 

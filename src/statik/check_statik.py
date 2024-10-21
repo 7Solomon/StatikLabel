@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 def get_line_equation(coords, rotation):
     x, y = coords
     angle = math.radians(rotation)
@@ -195,12 +195,20 @@ def check_if_fest_per_scheibe(value, objects):
 
 def check_static_of_groud_scheiben(scheiben_pol_vals, objects):
     scheiben = {}
-    for key,scheiben_pol_value in scheiben_pol_vals.items():  ### Ist noch Falsch, bzw ineffizient, da es alle Pole anschaut nicht nur die (n,0)
+    for key,scheiben_pol_value in scheiben_pol_vals.items():  ### Ist noch Falsch, bzw ineffizient, da es alle Pole anschaut nicht nur die (n,0)   ?? Vielleicht nicht mehr relevant
         result = check_if_fest_per_scheibe(scheiben_pol_value,objects)
         scheiben[key] = {}
         scheiben[key]['pole'] = scheiben_pol_value
         scheiben[key]['static'] = result
     return scheiben
+
+def check_static_of_system(scheiben, poles, objects):
+    degrees_of_freedom = {'horizontal': 1, 'vertical': 1, 'rotational': 1}
+    #search_for_contraditcion()
+    
+    
+    
+    return None
         
 
 
