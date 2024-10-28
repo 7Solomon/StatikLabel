@@ -5,7 +5,7 @@ from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, QPoint
 
 class ObjectPainter(QWidget):
-    def __init__(self, objects, connections, scheiben, static_information, result=None):
+    def __init__(self, objects, connections=None, scheiben= None, static_information= None, result=None):
         super().__init__()
         self.objects = objects
         self.connections = connections
@@ -31,10 +31,11 @@ class ObjectPainter(QWidget):
         qp.end()
 
     def get_feste_scheiben_nodes(self):
-        for key,e in self.static_information.items():
-            if e['static'] == True:
-                self.feste_nodes.extend(self.scheiben['scheiben'][key]['nodes'])
-                
+        if self.static_information:
+            for key,e in self.static_information.items():
+                if e['static'] == True:
+                    self.feste_nodes.extend(self.scheiben['scheiben'][key]['nodes'])
+                    
 
     def drawObjects(self, qp):
         colors = {
@@ -85,29 +86,30 @@ class ObjectPainter(QWidget):
 
 
     def drawConnections(self, qp):
-        for (p1, p2), conn in self.connections.items():
-            
-            # Check if Conenction is scheiben conenction
-            if p1 in self.feste_nodes and p2 in self.feste_nodes:
-                qp.setPen(QPen(Qt.red, 2, Qt.SolidLine))  # Red lines for connections in 'scheiben'
-            else:
-                qp.setPen(QPen(Qt.black, 2, Qt.SolidLine))  # Black for other connections
+        if self.connections:
+            for (p1, p2), conn in self.connections.items():
+                
+                # Check if Conenction is scheiben conenction
+                if p1 in self.feste_nodes and p2 in self.feste_nodes:
+                    qp.setPen(QPen(Qt.red, 2, Qt.SolidLine))  # Red lines for connections in 'scheiben'
+                else:
+                    qp.setPen(QPen(Qt.black, 2, Qt.SolidLine))  # Black for other connections
 
 
-            x1, y1 = self.objects[p1]['coordinates']
-            x2, y2 = self.objects[p2]['coordinates']
+                x1, y1 = self.objects[p1]['coordinates']
+                x2, y2 = self.objects[p2]['coordinates']
 
-            x1 = x1 * self.scale_factor + self.width() // 2
-            y1 = -y1 * self.scale_factor + self.height() // 2
-            x2 = x2 * self.scale_factor + self.width() // 2
-            y2 = -y2 * self.scale_factor + self.height() // 2
+                x1 = x1 * self.scale_factor + self.width() // 2
+                y1 = -y1 * self.scale_factor + self.height() // 2
+                x2 = x2 * self.scale_factor + self.width() // 2
+                y2 = -y2 * self.scale_factor + self.height() // 2
 
-            qp.drawLine(x1, y1, x2, y2)
+                qp.drawLine(x1, y1, x2, y2)
 
-            #if conn['orientation'] != 'diagonal':
-            #    self.drawDimensionLine(qp, x1, y1, x2, y2, conn['normalized_length'])
-            #else:
-            #    self.drawDiagonalDimensions(qp, x1, y1, x2, y2, conn['normalized_length_x'], conn['normalized_length_y'])
+                #if conn['orientation'] != 'diagonal':
+                #    self.drawDimensionLine(qp, x1, y1, x2, y2, conn['normalized_length'])
+                #else:
+                #    self.drawDiagonalDimensions(qp, x1, y1, x2, y2, conn['normalized_length_x'], conn['normalized_length_y'])
 
     def drawPolplan(self, qp):
         line_pen = QPen(Qt.blue, 2, Qt.DotLine)

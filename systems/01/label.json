@@ -3,58 +3,66 @@
     "A": {
       "type": "Gelenk",
       "coordinates": [
-        66,
-        21
-      ]
+        0.11018363939899833,
+        0.04294478527607362
+      ],
+      "rotation": null
     },
     "B": {
       "type": "Gelenk",
       "coordinates": [
-        287,
-        18
-      ]
+        0.4791318864774624,
+        0.03680981595092025
+      ],
+      "rotation": null
     },
     "C": {
       "type": "Gelenk",
       "coordinates": [
-        290,
-        102
-      ]
+        0.48414023372287146,
+        0.2085889570552147
+      ],
+      "rotation": null
     },
     "D": {
       "type": "Gelenk",
       "coordinates": [
-        462,
-        19
-      ]
+        0.7712854757929883,
+        0.03885480572597137
+      ],
+      "rotation": null
     },
     "E": {
       "type": "Gelenk",
       "coordinates": [
-        377,
-        185
-      ]
+        0.6293823038397329,
+        0.3783231083844581
+      ],
+      "rotation": null
     },
     "F": {
       "type": "Gelenk",
       "coordinates": [
-        460,
-        186
-      ]
+        0.7679465776293823,
+        0.3803680981595092
+      ],
+      "rotation": null
     },
     "G": {
       "type": "Festlager",
       "coordinates": [
-        460,
-        415
-      ]
+        0.7679465776293823,
+        0.8486707566462167
+      ],
+      "rotation": null
     },
     "H": {
       "type": "Festlager",
       "coordinates": [
-        544,
-        104
-      ]
+        0.9081803005008348,
+        0.21267893660531698
+      ],
+      "rotation": null
     }
   },
   "connections": [

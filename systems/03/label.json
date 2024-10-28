@@ -3,96 +3,104 @@
     "A": {
       "type": "Loslager",
       "coordinates": [
-        1045,
-        191
+        0.939748201438849,
+        0.45476190476190476
       ],
       "rotation": 180.0
     },
     "B": {
       "type": "Festlager",
       "coordinates": [
-        1042,
-        370
-      ]
+        0.9370503597122302,
+        0.8809523809523809
+      ],
+      "rotation": null
     },
     "C": {
       "type": "Normalkrafteinspannung",
       "coordinates": [
-        125,
-        185
+        0.11241007194244604,
+        0.44047619047619047
       ],
       "rotation": -88.80651057601797
     },
     "D": {
       "type": "Querkraftgelenk",
       "coordinates": [
-        502,
-        191
+        0.45143884892086333,
+        0.45476190476190476
       ],
       "rotation": 180.0
     },
     "E": {
       "type": "Biegesteifecke",
       "coordinates": [
-        321,
-        188
-      ]
+        0.2886690647482014,
+        0.44761904761904764
+      ],
+      "rotation": null
     },
     "F": {
       "type": "Biegesteifecke",
       "coordinates": [
-        322,
-        366
-      ]
+        0.289568345323741,
+        0.8714285714285714
+      ],
+      "rotation": null
     },
     "G": {
       "type": "Biegesteifecke",
       "coordinates": [
-        680,
-        187
-      ]
+        0.6115107913669064,
+        0.4452380952380952
+      ],
+      "rotation": null
     },
     "H": {
       "type": "Gelenk",
       "coordinates": [
-        859,
-        101
-      ]
+        0.7724820143884892,
+        0.24047619047619048
+      ],
+      "rotation": null
     },
     "I": {
       "type": "Gelenk",
       "coordinates": [
-        865,
-        187
-      ]
+        0.7778776978417267,
+        0.4452380952380952
+      ],
+      "rotation": null
     },
     "J": {
       "type": "Gelenk",
       "coordinates": [
-        1039,
-        100
-      ]
+        0.9343525179856115,
+        0.23809523809523808
+      ],
+      "rotation": null
     },
     "K": {
       "type": "Gelenk",
       "coordinates": [
-        1042,
-        9
-      ]
+        0.9370503597122302,
+        0.02142857142857143
+      ],
+      "rotation": null
     },
     "L": {
       "type": "Losesende",
       "coordinates": [
-        682,
-        10
+        0.6133093525179856,
+        0.023809523809523808
       ],
       "rotation": null
     },
     "M": {
       "type": "Losesende",
       "coordinates": [
-        501,
-        368
+        0.4505395683453237,
+        0.8761904761904762
       ],
       "rotation": null
     }
@@ -161,20 +169,6 @@
     [
       "G",
       "L"
-    ]
-  ],
-  "rotation_lines": [
-    [
-      "C",
-      -88.80651057601797
-    ],
-    [
-      "A",
-      180.0
-    ],
-    [
-      "D",
-      180.0
     ]
   ]
 }
