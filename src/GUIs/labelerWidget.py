@@ -10,7 +10,7 @@ from PyQt5.QtCore import Qt, QPoint, QSize, QRect
 
 
 class ImageWidget(QLabel):
-    def __init__(self, parent=None):
+    def __init__(self, shared_data, parent=None):
         super().__init__(parent)
         self.setAlignment(Qt.AlignCenter)
         self.setMinimumSize(400, 300)
@@ -18,15 +18,15 @@ class ImageWidget(QLabel):
         self.original_pixmap = None
         self.max_size = QSize(1920, 1080)
         
-        #self.state_manager = StateManager()
+        self.shared_data = shared_data 
+        self.shared_data.add_observer(self.get_variables)
 
-        self.init_variables()
+        self.get_variables()
 
-    def init_variables(self):
-
-        self.connections = []
-        self.objects = {}
-        self.object_counter = 0
+    def get_variables(self):
+        self.objects =  self.shared_data.data.get("objects", {})
+        self.connections = self.shared_data.data.get("connections", [])
+        self.object_counter = len(self.objects)
         
         self.connection_start = None
 
@@ -44,11 +44,13 @@ class ImageWidget(QLabel):
     
     def load_data(self, data):
         """Load a previous state into the widget"""
+
         objects = data.get("objects", {})
         connections = data.get("connections", [])
 
-        key_mapping = {}        
-        object_counter = len(self.objects)
+        key_mapping = {} 
+        objects_to_observer = {}       
+        object_counter = 0
         if objects:
             if isinstance(next(iter(objects.values()))['coordinates'], list) and all(isinstance(x, int) for x in next(iter(objects.values()))['coordinates']):   # This just realizes the first elemnt works but could be better 
                 if self.parent().askToNormalize():
@@ -56,20 +58,30 @@ class ImageWidget(QLabel):
                         new_key = chr(65 + object_counter)
                         scalar_x = obj['coordinates'][0] / self.original_pixmap.width()
                         scalar_y = obj['coordinates'][1] / self.original_pixmap.height()
-                        self.objects[new_key] = {
+                        objects_to_observer[new_key] = {
                             "type": obj["type"],
                             "coordinates": (scalar_x, scalar_y),
                             "rotation": obj.get("rotation", None)
                         }
-                        key_mapping[key] = new_key   # Um neue auf alt umzuwischen
+                        #self.objects[new_key] = {
+                        #    "type": obj["type"],
+                        #    "coordinates": (scalar_x, scalar_y),
+                        #    "rotation": obj.get("rotation", None)
+                        #}
                         object_counter += 1
+                        key_mapping[key] = new_key   # Um neue auf alt umzuwischen
+                    self.shared_data.update_data('objects', objects_to_observer)   # Send update to shared data
+                    
                     new_connections = [[key_mapping[start], key_mapping[end]] for start, end in connections]
-                    self.connections = new_connections
+                    self.shared_data.update_data('connections', new_connections)   # Send update to shared data
+                    #self.connections = new_connections
                                         
             elif isinstance(next(iter(objects.values()))['coordinates'], list) and all(isinstance(x, float) for x in next(iter(objects.values()))['coordinates']):
-                self.objects = objects
-                self.object_counter = object_counter
-                self.connections = connections
+                self.shared_data.update_data('objects', objects)
+                self.shared_data.update_data('connections', connections)
+                #self.objects = objects
+                #self.object_counter = object_counter
+                #self.connections = connections
         self.update()
     
     def get_scaled_pixmap(self):
@@ -247,13 +259,20 @@ class ImageWidget(QLabel):
         if not image_coords:
             return
 
-        identifier = chr(65 + self.object_counter)
-        self.objects[identifier] = {
-            "type": object_type,
-            "coordinates": image_coords,  # Store as tuple of floats
-            "rotation": None
-        }
-        self.object_counter += 1
+        identifier = chr(65 + self.object_counter)   # Muss Vielleciht anders sein
+        self.shared_data.update_data('objects', {**self.objects, 
+                                                        identifier:{
+                                                                    "type": object_type, 
+                                                                    "coordinates": image_coords,
+                                                                    "rotation": None
+                                                                }
+                                                })   # Send update to shared data
+        #self.objects[identifier] = {
+        #    "type": object_type,
+        #    "coordinates": image_coords,  # Store as tuple of floats
+        #    "rotation": None
+        #}
+        #self.object_counter += 1
         self.update()
 
     ## Connect objects
@@ -267,7 +286,10 @@ class ImageWidget(QLabel):
                 self.connection_start = clicked_object
             else:
                 if self.connection_start != clicked_object:
-                    self.connections.append((self.connection_start, clicked_object))
+                    
+                    self.shared_data.update_data('connections', [*self.connections,(self.connection_start, clicked_object)])   # Send update to shared data
+                    #self.connections.append((self.connection_start, clicked_object))
+                
                 self.connection_start = None
         else:
             self.connection_start = None
@@ -307,9 +329,9 @@ class ImageWidget(QLabel):
 
 
 class ImageLabelWidget(QWidget):
-    def __init__(self, provide_image_callback=None, parent=None):
+    def __init__(self, shared_data, parent=None):
         super().__init__(parent)
-        self.provide_image_callback = provide_image_callback
+        self.shared_data = shared_data
         self.init_ui()
         
         
@@ -319,7 +341,7 @@ class ImageLabelWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         
         # Create image display
-        self.image_widget = ImageWidget()
+        self.image_widget = ImageWidget(self.shared_data)
         
         # Create controls with margins
         controls_layout = QHBoxLayout()
@@ -348,7 +370,7 @@ class ImageLabelWidget(QWidget):
 
     def load_image(self, pixmap):
         """Load image from provided QPixmap"""
-        self.image_widget.init_variables()  ## Maybe danger
+        self.image_widget.get_variables()  ## Maybe danger
         self.image_widget.setPixmap(pixmap)
 
     def get_data(self):

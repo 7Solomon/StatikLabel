@@ -165,11 +165,15 @@ def analyze_connections(connections, objects):
         'origin_object': origin_id
     }
 
-def get_normalization(label_path):
-    connections = {}
+def get_normalization_from_path(label_path):
     with open(label_path, 'r') as file:
         data = json.load(file)
+    return get_normalization(data)
     
+    
+
+def get_normalization(data):
+    connections = {}
     for p1, p2 in data['connections']:
         x1, y1 = data['objects'][p1]['coordinates']
         x2, y2 = data['objects'][p2]['coordinates']

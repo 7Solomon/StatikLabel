@@ -5,11 +5,13 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 
+from src.GUIs.ObjectManager import ObjectManagerWidget
 from src.GUIs.SystemDrawer import ObjectPainter
 from src.GUIs.CustomeWidgets.Ansichten import Ansichten
 from src.GUIs.labelerWidget import ImageLabelWidget
 from src.GUIs.CustomeWidgets.FileManager import ExplorerWidget
 from src.GUIs.CustomeWidgets.Drawer import MultiPanelDrawer
+from src.state import SharedData
 
 
 class Interacter(QMainWindow):
@@ -33,15 +35,15 @@ class Interacter(QMainWindow):
         
         # Create the stacked widget
         self.stacked_display_area = QStackedWidget()
-        
+        self.shared_data = SharedData()
         # Create and add the display widgets
-        self.display_area = ImageLabelWidget()
+        self.display_area = ImageLabelWidget(self.shared_data)
         self.display_area.setStyleSheet("background-color: white;")
         self.display_area.setMinimumWidth(800)
         self.display_area.setMinimumHeight(600)
         
         # Create system widget (second page)
-        self.system_widget = ObjectPainter({})
+        self.system_widget = ObjectManagerWidget(self.shared_data)
         self.system_widget.setStyleSheet("background-color: lightgray;")
         
         # Add widgets to stacked widget
@@ -100,6 +102,7 @@ class Interacter(QMainWindow):
             # Update the display area
             if self.show_confimation():
                 self.display_area.load_image(pixmap)
+                self.system_widget.object_painter.normalize_system()
             
             
         except Exception as e:
@@ -114,6 +117,7 @@ class Interacter(QMainWindow):
                 data = json.load(f)
             if self.show_confimation():
                 self.display_area.load_data(data)
+                self.system_widget.object_painter.normalize_system()
             
         except Exception as e:
             # You might want to add proper error handling here

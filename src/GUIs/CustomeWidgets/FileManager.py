@@ -72,11 +72,11 @@ class ExplorerWidget(QWidget):
         if file_type in ['image/png', 'image/jpeg']:
             if self.handle_image_selected:
                 self.handle_image_selected(path)
-            print('Opening image:', path)
+            #print('Opening image:', path)
         elif file_type == 'application/json': 
             if self.handle_json_selected:
                 self.handle_json_selected(path)
-            print('Opening JSON:', path)
+            #print('Opening JSON:', path)
     def get_selected_path(self):
         indexes = self.tree.selectedIndexes()
         if indexes:
