@@ -383,6 +383,7 @@ class ImageLabelWidget(QWidget):
     def load_data(self, data):
         """Load a previous state into the widget"""
         self.image_widget.load_data(data)
+        
     def askToNormalize(self):
         popup = QMessageBox()
         popup.setWindowTitle("?")

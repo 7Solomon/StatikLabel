@@ -5,6 +5,10 @@ from PyQt5.QtGui import QPainter, QColor, QPen, QTransform
 from PyQt5.QtCore import Qt, QPoint, QSize, QPointF
 
 from src.normalize_system import get_normalization
+from src.statik.scheiben import get_scheiben 
+from src.statik.scan_pole import get_all_pole
+from src.statik.check_statik import check_static_of_groud_scheiben, check_static_of_system
+from src.statik.analyse import analyze_polplan
 
 class ObjectPainter(QWidget):
     def __init__(self, shared_data, scheiben= None, static_information= None, result=None):
@@ -16,6 +20,15 @@ class ObjectPainter(QWidget):
         self.selected_object_type = None
         self.snap_threshold = 0.333  # How close to gridline to snap (in grid units)
         self.rotation_angle = 0
+
+        # None initialize
+        self.objects = None
+        self.connections = None
+        self.scheiben_data = None
+        self.pol_data = None
+        self.static_of_system = None
+        self.static_data_of_scheiben = None
+        self.visaulization_of_poplan = None
 
         self.normalize_system()
         self.init_variables()
@@ -38,9 +51,6 @@ class ObjectPainter(QWidget):
 
         data = self.shared_data.get_normalized_system()
         self.objects, self.connections = data.get('normalized_objects',{}), data.get('normalized_connections',[])
-        self.result = None                      #
-        self.scheiben = None                    #  Hier das sollte richtig gadded werden      
-        self.static_information = None          #
         self.feste_nodes = []
 
         #if not len(data.get('objects',[])) == 0 and not len(data.get('connections',[])) == 0:
@@ -73,9 +83,11 @@ class ObjectPainter(QWidget):
 
         self.drawPreview(qp)
 
-        if self.result:
+        if self.static_data_of_scheiben:
             self.drawPolplan(qp)
         qp.end()
+
+
     def drawGrid(self, qp):
         grid_pen = QPen(QColor(200, 200, 200))
         grid_pen.setStyle(Qt.DashLine)
@@ -123,14 +135,7 @@ class ObjectPainter(QWidget):
             # Y-axis numbers
             y = center_y - i * grid_spacing
             if i != 0:
-                qp.drawText(center_x + 10, y + 5, str(i))
-
-    def get_feste_scheiben_nodes(self):
-        if self.static_information:
-            for key,e in self.static_information.items():
-                if e['static'] == True:
-                    self.feste_nodes.extend(self.scheiben['scheiben'][key]['nodes'])
-                    
+                qp.drawText(center_x + 10, y + 5, str(i))            
 
     def drawObjects(self, qp):
         colors = {
@@ -204,57 +209,6 @@ class ObjectPainter(QWidget):
                 #    self.drawDimensionLine(qp, x1, y1, x2, y2, conn['normalized_length'])
                 #else:
                 #    self.drawDiagonalDimensions(qp, x1, y1, x2, y2, conn['normalized_length_x'], conn['normalized_length_y'])
-
-    def drawPolplan(self, qp):
-        line_pen = QPen(Qt.blue, 2, Qt.DotLine)
-        np_pen = QPen(Qt.red, 5)
-        
-
-        
-        widget_width = self.width()
-        widget_height = self.height()
-        
-        for scheibe in self.result['visualize'].values():
-            qp.setPen(line_pen)
-            # Scale and shift coordinates for the first point (HP1)
-            x1 = scheibe['HP1'][0] * self.scale_factor + widget_width // 2
-            y1 = -scheibe['HP1'][1] * self.scale_factor + widget_height // 2
-            
-            # Scale and shift coordinates for the second point (HP2)
-            x2 = scheibe['HP2'][0] * self.scale_factor + widget_width // 2
-            y2 = -scheibe['HP2'][1] * self.scale_factor + widget_height // 2
-            
-            # Calculate direction vector (dx, dy)
-            dx = x2 - x1
-            dy = y2 - y1
-            
-            # Normalize the direction vector to unit length
-            length = (dx**2 + dy**2)**0.5
-            dx /= length
-            dy /= length
-            
-            # Extend the line to "infinity" (far beyond the widget dimensions)
-            factor = max(widget_width, widget_height) * 2  # Extend it far beyond the visible screen
-            x_start = x1 - dx * factor
-            y_start = y1 - dy * factor
-            x_end = x2 + dx * factor
-            y_end = y2 + dy * factor
-            
-            # Draw the extended line
-            qp.drawLine(x_start, y_start, x_end, y_end)
-            
-            # Draw the point NP and labels (no change needed here)
-            x3 = scheibe['NP'][0] * self.scale_factor + widget_width // 2
-            y3 = -scheibe['NP'][1] * self.scale_factor + widget_height // 2
-            
-            qp.setPen(np_pen)
-            qp.drawPoint(x3, y3)
-            
-            # Labels for points
-            qp.drawText(x1 + 30, y1, 'HP1')
-            qp.drawText(x2 + 30, y2, 'HP2')
-            qp.drawText(x3 + 30, y3, 'NP')
-
 
     def drawDimensionLine(self, qp, x1, y1, x2, y2, length):
         offset = 20  # Offset for dimension line
@@ -493,3 +447,47 @@ class ObjectPainter(QWidget):
         grid_y = -(screen_y - widget_center_y - self.offset.y()) / self.scale_factor
         
         return grid_x, grid_y
+    def display_debug_text(self, text):
+        self.parent().floating_info.updateInfo(f"Debug Info\n{text}")
+
+    def load_scheiben(self):
+        self.init_variables()
+        if self.connections and self.objects:
+            self.scheiben_data = get_scheiben(self.connections, self.objects)
+            print(f'Scheiben_data.keys(){self.scheiben_data}')
+    def load_pol_data(self):
+        self.load_scheiben()
+        if self.objects and self.scheiben_data:
+            self.pol_data = get_all_pole(self.objects, self.scheiben_data['scheiben'], self.scheiben_data['scheiben_connection']) 
+            print(f'Pol_data: {self.pol_data}')
+    def load_feste_scheiben(self):
+        self.load_pol_data()
+        if self.pol_data and self.objects:
+            self.static_data_of_scheiben = check_static_of_groud_scheiben(self.pol_data['pole_of_scheiben'],self.objects)
+            print(f'static_of_:{self.static_data_of_scheiben}')
+    def load_visualization_of_polplan_data(self):
+        self.load_pol_data()
+        if self.objects and self.pol_data:
+            weglinien, mismatches, is_valid = analyze_polplan(self.pol_data['pole'],self.objects)
+            self.visaulization_of_poplan  = {
+                'weglinien': weglinien,
+                'mismatches': mismatches,
+                'is_valid': is_valid
+            }
+
+            self.display_debug_text(f'Pol_plan_vis: {self.visaulization_of_poplan}')
+            
+
+    def load_static_of_system(self):
+        self.load_feste_scheiben()
+        if self.static_data_of_scheiben and self.pol_data and self.objects:
+            self.static_of_system = check_static_of_system(self.static_data_of_scheiben, self.pol_data['pole'], self.objects)
+            raise NotImplementedError("Du Kek das ist noch nicht Implementiert!!")
+ 
+
+    def get_feste_scheiben_nodes(self):
+        if self.static_information:
+            for key,e in self.static_information.items():
+                if e['static'] == True:
+                    self.feste_nodes.extend(self.scheiben['scheiben'][key]['nodes'])
+    

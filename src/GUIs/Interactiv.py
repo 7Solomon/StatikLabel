@@ -61,7 +61,7 @@ class Interacter(QMainWindow):
             handle_json_selected=self.handle_json_selected,
             export_button_callback=self.handle_export_selected
         )
-        
+        self.explorer.setMinimumWidth(100)
         # Create the multi-panel drawer
         self.drawer = MultiPanelDrawer(panels={
             'ansichten': self.ansichten,
