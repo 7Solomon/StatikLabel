@@ -1,7 +1,7 @@
 import json
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                           QHBoxLayout, QToolBar, QListWidget, QLabel, QMessageBox, QStackedWidget)
+                           QHBoxLayout, QToolBar, QListWidget, QLabel, QMessageBox, QStackedWidget, QPushButton)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 
@@ -32,7 +32,7 @@ class Interacter(QMainWindow):
         toolbar.addWidget(QLabel("Task Bar"))
         toolbar.addSeparator()
         toolbar.setMovable(False)
-        
+
         # Create the stacked widget
         self.stacked_display_area = QStackedWidget()
         self.shared_data = SharedData()
@@ -67,11 +67,21 @@ class Interacter(QMainWindow):
             'ansichten': self.ansichten,
             'datein': self.explorer
         })
+
+        # Add Show Button
+        self.show_stuff_button = QPushButton("Grid")
+        self.show_stuff_button.clicked.connect(self.system_widget.object_painter.drawGridBoolUpdate)
+        toolbar.addWidget(self.show_stuff_button)
+        self.stacked_display_area.currentChanged.connect(self.update_button_visibility)
         
         # Add widgets to main layout
         main_layout.addWidget(self.stacked_display_area)
         main_layout.addWidget(self.drawer)
     
+    def update_button_visibility(self, index):
+        """Show the button only when on the Drawer."""   ### Functioniert noch nicht? Ka wieso
+        self.show_stuff_button.setVisible(index == 1)
+
     def show_confimation(self):
         # Create a message box
         popup = QMessageBox()

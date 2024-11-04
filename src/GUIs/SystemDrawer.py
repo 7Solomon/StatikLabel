@@ -29,40 +29,45 @@ class ObjectPainter(QWidget):
         self.static_of_system = None
         self.static_data_of_scheiben = None
         self.visaulization_of_poplan = None
+        self.view_range = 10
+        self.scale_factor = 100
+        self.offset = QPoint(0, 0) 
+        self.last_mouse_pos = None
+
+        self.drawGridBool = False
 
         self.normalize_system()
         self.init_variables()
         
     def normalize_system(self):
         data = self.shared_data.get_label_data()
-        #print(f'Normaliize: {data}')
+        
         if not len(data.get('objects',[])) == 0 and not len(data.get('connections',[])) == 0:
             objects, connections = get_normalization(data)
+            #print(f'Objects: {objects}\nConnections: {connections}')
             self.shared_data.update_data('normalized_connections', connections)
             self.shared_data.update_data('normalized_objects', objects)
             #self.get_feste_scheiben_nodes()    
         #self.init_variables()
 
     def init_variables(self):
-        self.view_range = 10
-        self.scale_factor = 100
-        self.offset = QPoint(0, 0) 
-        self.last_mouse_pos = None
-
         data = self.shared_data.get_normalized_system()
         self.objects, self.connections = data.get('normalized_objects',{}), data.get('normalized_connections',[])
         self.feste_nodes = []
 
-        #if not len(data.get('objects',[])) == 0 and not len(data.get('connections',[])) == 0:
-        #    self.objects, self.connections = get_normalization(data)
-        #    self.get_feste_scheiben_nodes()
         self.update()
     
     def initUI(self):
         self.setGeometry(100, 100, 600, 600)
         self.setWindowTitle('Normalized Objects and Connections Painter')
         self.show()
-
+    
+    def drawGridBoolUpdate(self):
+        if self.drawGridBool == True:
+            self.drawGridBool = False
+        else:
+            self.drawGridBool = True
+        self.update()
     def paintEvent(self, event):
         qp = QPainter()
         qp.begin(self)
@@ -76,14 +81,15 @@ class ObjectPainter(QWidget):
             qp.rotate(self.rotation_angle)
             qp.translate(-self.width() // 2, -self.height() // 2)
 
+        if self.drawGridBool:
+            self.drawGrid(qp)
 
-        self.drawGrid(qp)
         self.drawObjects(qp)
         self.drawConnections(qp)
 
         self.drawPreview(qp)
 
-        if self.static_data_of_scheiben:
+        if self.visaulization_of_poplan:
             self.drawPolplan(qp)
         qp.end()
 
@@ -272,7 +278,20 @@ class ObjectPainter(QWidget):
         qp.drawLine(QPoint(0, 0), QPoint(-arrow_size, -arrow_size / 2))
         qp.drawLine(QPoint(0, 0), QPoint(-arrow_size, arrow_size / 2))
         qp.restore()
-    
+    def drawPolplan(self, qp):
+
+        """for weg in self.visaulization_of_poplan['weglinien']:
+            x1, y1 = weg[0]
+            x2, y2 = weg[1]
+
+
+            x1 = x1 * self.scale_factor + self.width() // 2
+            y1 = -y1 * self.scale_factor + self.height() // 2
+            x2 = x2 * self.scale_factor + self.width() // 2
+            y2 = -y2 * self.scale_factor + self.height() // 2
+            qp.setPen(QPen(Qt.red, 2, Qt.SolidLine))"""
+
+
     # For Drag stuff
     def mousePressEvent(self, event):
         if event.button() == Qt.MiddleButton:
@@ -454,27 +473,27 @@ class ObjectPainter(QWidget):
         self.init_variables()
         if self.connections and self.objects:
             self.scheiben_data = get_scheiben(self.connections, self.objects)
-            print(f'Scheiben_data.keys(){self.scheiben_data}')
+            #print(f'Scheiben_data.keys(){self.scheiben_data}')
     def load_pol_data(self):
         self.load_scheiben()
         if self.objects and self.scheiben_data:
             self.pol_data = get_all_pole(self.objects, self.scheiben_data['scheiben'], self.scheiben_data['scheiben_connection']) 
-            print(f'Pol_data: {self.pol_data}')
+            #print(f'Pol_data: {self.pol_data}')
     def load_feste_scheiben(self):
         self.load_pol_data()
         if self.pol_data and self.objects:
             self.static_data_of_scheiben = check_static_of_groud_scheiben(self.pol_data['pole_of_scheiben'],self.objects)
-            print(f'static_of_:{self.static_data_of_scheiben}')
+            #print(f'static_of_:{self.static_data_of_scheiben}')
     def load_visualization_of_polplan_data(self):
         self.load_pol_data()
         if self.objects and self.pol_data:
-            weglinien, mismatches, is_valid = analyze_polplan(self.pol_data['pole'],self.objects)
+            mismatches, weglinien, is_valid = analyze_polplan(self.pol_data['pole'], self.objects)
             self.visaulization_of_poplan  = {
                 'weglinien': weglinien,
                 'mismatches': mismatches,
                 'is_valid': is_valid
             }
-
+            print(f'Pol_plan_vis: {self.visaulization_of_poplan}')
             self.display_debug_text(f'Pol_plan_vis: {self.visaulization_of_poplan}')
             
 

@@ -1,0 +1,78 @@
+{
+  "objects": {
+    "A": {
+      "type": "Festlager",
+      "coordinates": [
+        0.23843700159489634,
+        0.8993548387096775
+      ],
+      "rotation": null
+    },
+    "B": {
+      "type": "Einspannung",
+      "coordinates": [
+        0.8110047846889952,
+        0.8961290322580645
+      ],
+      "rotation": null
+    },
+    "C": {
+      "type": "Gelenk",
+      "coordinates": [
+        0.23923444976076555,
+        0.4967741935483871
+      ],
+      "rotation": null
+    },
+    "D": {
+      "type": "Gelenk",
+      "coordinates": [
+        0.8086124401913876,
+        0.5077419354838709
+      ],
+      "rotation": null
+    },
+    "E": {
+      "type": "Gelenk",
+      "coordinates": [
+        0.80622009569378,
+        0.12258064516129032
+      ],
+      "rotation": null
+    },
+    "F": {
+      "type": "Gelenk",
+      "coordinates": [
+        0.23604465709728867,
+        0.12258064516129032
+      ],
+      "rotation": null
+    }
+  },
+  "connections": [
+    [
+      "A",
+      "C"
+    ],
+    [
+      "C",
+      "D"
+    ],
+    [
+      "D",
+      "B"
+    ],
+    [
+      "D",
+      "E"
+    ],
+    [
+      "E",
+      "F"
+    ],
+    [
+      "F",
+      "C"
+    ]
+  ]
+}

@@ -60,25 +60,37 @@ def get_main_pole_from_object_data(objects, scheibe):
         return None
     
 def get_bind_pole(pole):
-    new_disscoverd_pole = {}
+    ### Functioniert nicht für merhere Pole pro Scheibe"!!!
+    new_disscoverd_pole = {}  
     for i,((keya,keyb), value) in enumerate(pole.items()):
         for pol in value:
             if pol['type'] == 'P':
                 for j, ((key2a,key2b), value2) in enumerate(pole.items()):
-                    if i != j:    
+                    if i != j:                            
                         if key2a == keya:
-                            new_disscoverd_pole.setdefault((key2b, keyb),[]).append({'type': 'WL', 'node': value2[0]['node']})  # Mann kann auch value nehmen
+                            new_disscoverd_pole.setdefault((key2b, keyb),[]).append({'type': 'WL', 'node': [value2[0]['node'], value[0]['node']]})  # Mann kann auch value nehmen
                         if key2b == keya:
-                            new_disscoverd_pole.setdefault((key2a, keyb),[]).append({'type': 'WL', 'node': value2[0]['node']})
+                            new_disscoverd_pole.setdefault((key2a, keyb),[]).append({'type': 'WL', 'node': [value2[0]['node'], value[0]['node']]})
                         if key2a == keyb:
-
-                            new_disscoverd_pole.setdefault((key2b, keya),[]).append({'type': 'WL', 'node': value2[0]['node']})
+                            new_disscoverd_pole.setdefault((key2b, keya),[]).append({'type': 'WL', 'node': [value2[0]['node'],value[0]['node']]})
                         if key2b == keyb:
-                            new_disscoverd_pole.setdefault((key2a, keya),[]).append({'type': 'WL', 'node': value2[0]['node']})
-                
-    return new_disscoverd_pole
+                            new_disscoverd_pole.setdefault((key2a, keya),[]).append({'type': 'WL', 'node': [value2[0]['node'],value[0]['node']]})
 
-def combine_pole(pole1,pole2,pol3):
+    # Nehme nur die einzelnen node connections
+    seen_nodes = set()
+    filtered_data = {}
+    for key, value in new_disscoverd_pole.items():
+        node_list = value[0]['node']
+        # Convert node list to a set so order doesn't matter
+        node_set = frozenset(node_list)
+
+        # Check if this combination has been seen
+        if node_set not in seen_nodes:
+            seen_nodes.add(node_set)
+            filtered_data[key] = value   
+    return filtered_data
+
+def combine_pole(pole1,pole2): # !!def combine_pole(pole1,pole2,pol3): !! was this
     combined_pole = pole1.copy()
     for key, value in pole2.items():
         if key in combined_pole:
@@ -86,11 +98,11 @@ def combine_pole(pole1,pole2,pol3):
         else:
             combined_pole[key] = value
     
-    for key, value in pol3.items():
+    """for key, value in pol3.items():
         if key in combined_pole:
             combined_pole[key].extend(value)
         else:
-            combined_pole[key] = value
+            combined_pole[key] = value"""
     return combined_pole
 
 def sort_poles_to_scheiben(pole):
@@ -112,10 +124,12 @@ def get_all_pole(objects, scheiben, scheiben_connection):
         pol_element_of_scheibe = get_main_pole_from_object_data(objects, scheibe)
         if pol_element_of_scheibe is not None:
             main_pole[(key,0)] = pol_element_of_scheibe
-    
-    bind_pole = get_bind_pole(main_pole)     # Bind pole are the not trivial poles that comec from combination of two poles
     pole_of_scheiben = sort_poles_to_scheiben({**main_pole, **scheiben_connection})
-    pole =  combine_pole(main_pole,bind_pole,scheiben_connection)
+
+    #bind_pole = get_bind_pole(main_pole)     # Bind pole are the not trivial poles that comec from combination of two poles 
+    pole =  combine_pole(main_pole,scheiben_connection)   # """ Was this pole =  combine_pole(main_pole,bind_pole,scheiben_connection)!!!
+    print('pole',pole)
+    print('pole_of_scheiben',pole_of_scheiben)
     return {
         'pole_of_scheiben':pole_of_scheiben,
         'pole': pole

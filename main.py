@@ -2,7 +2,6 @@ import sys
 import json
 from PyQt5.QtWidgets import QApplication
 from src.GUIs.SystemDrawer import ObjectPainter
-from src.GUIs.Labler import ImageLabeler
 from src.GUIs.Interactiv import Interacter
 
 from src.normalize_system import get_normalization_from_path, get_normalization
@@ -12,11 +11,6 @@ from src.statik.check_statik import check_static_of_groud_scheiben, check_static
 from src.statik.analyse import analyze_polplan
 
 
-def open_labeler():
-    app = QApplication(sys.argv)
-    window = ImageLabeler()
-    window.show()
-    sys.exit(app.exec_())
 
 def open_system():
     objects,conenctions = get_normalization_from_path('./systems/03/label.json')

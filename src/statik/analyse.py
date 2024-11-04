@@ -14,17 +14,14 @@ def analyze_polplan(pol_data, node_data):
     """
     mismatches = []
     weglinien = []
-    
-    # Helper function to create a WL identifier
-    def create_wl_id(start_node, end_node):
-        return f"WL_{start_node}_{end_node}"
+
     
     # Extract all direct WLs from pol_data
     for pol_pair, properties in pol_data.items():
         for prop in properties:
             if prop['type'] in ['WL', 'FWL']:
                 node = prop['node']
-                rotation = prop.get('rotation')
+                rotation = prop.get('rotation', None)
                 
                 # For FWL (Querkraftgelenk), we need to check perpendicular alignment
                 if prop['type'] == 'FWL':
@@ -41,11 +38,8 @@ def analyze_polplan(pol_data, node_data):
                                 'expected': expected_rotation,
                                 'actual': rotation
                             })
-                
                 weglinien.append({
-                    'id': create_wl_id(pol_pair[0], pol_pair[1]),
-                    'start_pol': pol_pair[0],
-                    'end_pol': pol_pair[1],
+                    'id': pol_pair,
                     'node': node,
                     'type': prop['type'],
                     'rotation': rotation
@@ -54,23 +48,22 @@ def analyze_polplan(pol_data, node_data):
     # Check for derived WLs through pol connections
     for pol1 in set([p[0] for p in pol_data.keys()]):
         for pol2 in set([p[1] for p in pol_data.keys()]):
+            print('pol1, pol2', pol1, pol2)
             if pol1 != pol2:
+                
                 # Check if this combination creates a valid derived WL
                 connecting_pols = []
                 for pol_pair in pol_data.keys():
                     if pol1 in pol_pair and pol2 in pol_pair:
                         connecting_pols.append(pol_pair)
-                
                 if len(connecting_pols) == 2:
                     weglinien.append({
-                        'id': create_wl_id(pol1, pol2),
-                        'start_pol': pol1,
-                        'end_pol': pol2,
+                        'id': (pol1, pol2),
                         'type': 'derived',
                         'derived_from': connecting_pols
                     })
     
-    # Check for pol intersections that should exist but don't
+    """# Check for pol intersections that should exist but don't
     for wl1 in weglinien:
         for wl2 in weglinien:
             if wl1['id'] < wl2['id']:  # Avoid checking same pair twice
@@ -93,6 +86,7 @@ def analyze_polplan(pol_data, node_data):
                             'wl2': wl2['id'],
                             'expected_pol': expected_intersection
                         })
+    
 
     # Special handling for Normalkrafteinspannung
     for node, data in node_data.items():
@@ -116,5 +110,6 @@ def analyze_polplan(pol_data, node_data):
                             'expected': expected_rotation,
                             'actual': wl['rotation']
                         })
+                    """
 
     return mismatches, weglinien, len(mismatches) == 0

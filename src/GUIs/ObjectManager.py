@@ -76,6 +76,11 @@ class ObjectManagerWidget(QWidget):
         load_visualization_of_polplan_data_button = QPushButton('Lade die Visualisierung des Polplans')
         load_visualization_of_polplan_data_button.clicked.connect(self.object_painter.load_visualization_of_polplan_data)
         control_layout.addWidget(load_visualization_of_polplan_data_button)
+
+        reload_button = QPushButton('Lade das System neu, und normalisiere es')
+        reload_button.clicked.connect(self.object_painter.normalize_system)
+        reload_button.clicked.connect(self.object_painter.init_variables)
+        control_layout.addWidget(reload_button)
         
         
         #control_layout.addStretch()
