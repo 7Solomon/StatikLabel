@@ -14,6 +14,7 @@ def analyze_polplan(pol_data, node_data):
     """
     mismatches = []
     weglinien = []
+    connecting_pols = []
 
     
     # Extract all direct WLs from pol_data
@@ -45,24 +46,53 @@ def analyze_polplan(pol_data, node_data):
                     'rotation': rotation
                 })
 
-    # Check for derived WLs through pol connections
-    for pol1 in set([p[0] for p in pol_data.keys()]):
-        for pol2 in set([p[1] for p in pol_data.keys()]):
-            print('pol1, pol2', pol1, pol2)
-            if pol1 != pol2:
+
+    connecting_pols = []
+    processed_combinations = set()
+    for pair1 in pol_data:
+        # Skip if this pair doesn't contain any points
+        if not any(p['type'] == 'P' for p in pol_data[pair1]):
+            continue
+            
+        for pair2 in pol_data:
+            # Skip if this pair doesn't contain any points
+            if not any(p['type'] == 'P' for p in pol_data[pair2]):
+                continue
                 
-                # Check if this combination creates a valid derived WL
-                connecting_pols = []
-                for pol_pair in pol_data.keys():
-                    if pol1 in pol_pair and pol2 in pol_pair:
-                        connecting_pols.append(pol_pair)
-                if len(connecting_pols) == 2:
-                    weglinien.append({
-                        'id': (pol1, pol2),
-                        'type': 'derived',
-                        'derived_from': connecting_pols
-                    })
+            if pair1 == pair2 or (pair2, pair1) in processed_combinations:
+                continue
+                
+            processed_combinations.add((pair1, pair2))
+            
+            # Get the poles
+            p1_a, p1_b = pair1
+            p2_a, p2_b = pair2
+            
+            # Find common pole
+            common_poles = set([p1_a, p1_b]) & set([p2_a, p2_b])
+            
+            if common_poles:
+                common_pole = common_poles.pop()
+                
+                # Get the non-common poles
+                remaining_p1 = p1_a if p1_b == common_pole else p1_b
+                remaining_p2 = p2_a if p2_b == common_pole else p2_b
+                
+                # Get the point nodes
+                p1_node = next(p['node'] for p in pol_data[pair1] if p['type'] == 'P')
+                p2_node = next(p['node'] for p in pol_data[pair2] if p['type'] == 'P')
+                
+                # Create new connection
+                new_pair_id = tuple(sorted((remaining_p1, remaining_p2)))
+                new_pair_node = [p1_node, p2_node]
+                
+                connecting_pols.append({
+                    'id': new_pair_id,
+                    'type': 'WL',
+                    'node': new_pair_node
+                })
     
+
     """# Check for pol intersections that should exist but don't
     for wl1 in weglinien:
         for wl2 in weglinien:
@@ -112,4 +142,4 @@ def analyze_polplan(pol_data, node_data):
                         })
                     """
 
-    return mismatches, weglinien, len(mismatches) == 0
+    return mismatches, weglinien, connecting_pols, len(mismatches) == 0

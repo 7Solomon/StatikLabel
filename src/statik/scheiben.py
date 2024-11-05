@@ -17,7 +17,7 @@ def find_scheiben_connections(scheiben):
         intersection = set1['nodes'].intersection(set2['nodes'])
 
         if intersection:   # Just adds if exists
-            common_nodes_between_scheiben[i, j] = [{'type': 'P','node':_} for _ in intersection]
+            common_nodes_between_scheiben[i, j] = [{'type': 'P','node':_} for _ in intersection]      ### !!! Führt zu fehler, da connection auch Normal oder Querkraftgelenk sein kann
     return common_nodes_between_scheiben
 
 def find_repeated_nodes(connections):

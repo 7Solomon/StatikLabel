@@ -487,10 +487,11 @@ class ObjectPainter(QWidget):
     def load_visualization_of_polplan_data(self):
         self.load_pol_data()
         if self.objects and self.pol_data:
-            mismatches, weglinien, is_valid = analyze_polplan(self.pol_data['pole'], self.objects)
+            mismatches, weglinien, connecting_pols, is_valid = analyze_polplan(self.pol_data['pole'], self.objects)
             self.visaulization_of_poplan  = {
                 'weglinien': weglinien,
                 'mismatches': mismatches,
+                'connecting_pols': connecting_pols,
                 'is_valid': is_valid
             }
             print(f'Pol_plan_vis: {self.visaulization_of_poplan}')
