@@ -6,7 +6,7 @@ Nach dem Installieren der requirements:
 ```
 python main.py
 ```
-Öffnet eine leere GUI, in die man in der Explorermanager eine Label und Bild datei Laden kann: 
+Öffnet eine leere GUI, in die man in dem Explorermanager eine Label und Bild datei Laden kann: 
 ![Example](assets/example_1.png)
 
 
