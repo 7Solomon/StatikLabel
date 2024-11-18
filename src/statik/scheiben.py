@@ -6,18 +6,20 @@ from src.statik.fachwerk import *
 
 
 helper_connection_dict = {
+    'wl_connection': ["Normalkraftgelenk", "Querkraftgelenk"],
     'connection': ["Biegesteifecke", "Gelenk", "Normalkraftgelenk", "Querkraftgelenk"],
     'feste_connection': ['Biegesteifecke'],
 }
 
+
 test = {'Festlager': 'Hauptpol'}
-def find_scheiben_connections(scheiben):
+def find_scheiben_connections(scheiben, objects):
     common_nodes_between_scheiben = {}
     for (i,set1), (j,set2) in itertools.combinations(scheiben.items(), 2):
         intersection = set1['nodes'].intersection(set2['nodes'])
-
+        #print('DEBUG ', [objects[_]['type']for _ in intersection])
         if intersection:   # Just adds if exists
-            common_nodes_between_scheiben[i, j] = [{'type': 'P','node':_} for _ in intersection]      ### !!! Führt zu fehler, da connection auch Normal oder Querkraftgelenk sein kann
+            common_nodes_between_scheiben[i, j] = [{'type':  'WL' if objects[_]['type'] in helper_connection_dict['wl_connection'] else 'P','node':_, 'rotation': objects[_].get('rotation', None) } for _ in intersection]      ### !!! Führt zu fehler, da connection auch Normal oder Querkraftgelenk sein kann
     return common_nodes_between_scheiben
 
 def find_repeated_nodes(connections):
@@ -83,7 +85,7 @@ def get_scheiben(conenctions, objects):
     result = categories_connection_nodes(conenctions, objects)
     # scheiben data in schöne liste
     scheiben = {i+1:{"nodes": scheiben_data} for i, scheiben_data in enumerate(result['final_scheiben'])}
-    scheiben_connection = find_scheiben_connections(scheiben)
+    scheiben_connection = find_scheiben_connections(scheiben, objects)
     return {
         'scheiben_connection':scheiben_connection,
         'scheiben': scheiben,

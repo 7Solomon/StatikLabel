@@ -6,7 +6,7 @@
         0.6408163265306123,
         0.052805280528052806
       ],
-      "rotation": null
+      "rotation": 94.08561677997488
     },
     "B": {
       "type": "Loslager",
@@ -14,7 +14,7 @@
         0.10204081632653061,
         0.9207920792079208
       ],
-      "rotation": null
+      "rotation": 90.68159895896869
     },
     "C": {
       "type": "Festlager",
@@ -33,12 +33,12 @@
       "rotation": null
     },
     "E": {
-      "type": "Normalkrafrgelenk",
+      "type": "Normalkraftgelenk",
       "coordinates": [
         0.37551020408163266,
         0.056105610561056105
       ],
-      "rotation": null
+      "rotation": 180.0
     }
   },
   "connections": [
