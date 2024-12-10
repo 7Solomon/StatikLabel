@@ -1,7 +1,7 @@
 import json
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                           QHBoxLayout, QToolBar, QListWidget, QLabel, QMessageBox, QStackedWidget, QPushButton)
+                           QHBoxLayout, QToolBar, QListWidget, QLabel, QMessageBox, QStackedWidget, QPushButton, QToolButton, QMenu, QAction)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 
@@ -12,7 +12,7 @@ from src.GUIs.labelerWidget import ImageLabelWidget
 from src.GUIs.CustomeWidgets.FileManager import ExplorerWidget
 from src.GUIs.CustomeWidgets.Drawer import MultiPanelDrawer
 from src.state import SharedData
-
+from src.detection.test import get_new_data_format
 
 class Interacter(QMainWindow):
     def __init__(self):
@@ -30,6 +30,12 @@ class Interacter(QMainWindow):
         toolbar = QToolBar()
         self.addToolBar(toolbar)
         toolbar.addWidget(QLabel("Task Bar"))
+        toolbar.addSeparator()
+        self.drawer_button = QToolButton()
+        self.drawer_button.setText('Edit')
+        self.drawer_button.clicked.connect(self.show_drawer_menu)  
+        self.create_drawer_menu()  
+        toolbar.addWidget(self.drawer_button)
         toolbar.addSeparator()
         toolbar.setMovable(False)
 
@@ -59,7 +65,8 @@ class Interacter(QMainWindow):
         self.explorer = ExplorerWidget(
             handle_image_selected=self.handle_image_selected,
             handle_json_selected=self.handle_json_selected,
-            export_button_callback=self.handle_export_selected
+            export_button_callback=self.handle_export_selected,
+            export_to_new_format_button_callback=self.handle_export_to_new_format_selected,
         )
         self.explorer.setMinimumWidth(100)
         # Create the multi-panel drawer
@@ -81,12 +88,54 @@ class Interacter(QMainWindow):
     def update_button_visibility(self, index):
         """Show the button only when on the Drawer."""   ### Functioniert noch nicht? Ka wieso
         self.show_stuff_button.setVisible(index == 1)
+    def create_drawer_menu(self):
+        """Create the drawer menu"""
+        self.drawer_menu = QMenu(self)
 
-    def show_confimation(self):
+        action1 = QAction('Load', self)
+        action1.triggered.connect(self.load_data_to_new_data_format)
+        self.drawer_menu.addAction(action1)
+    def show_drawer_menu(self):
+        """ Show the drawer menu at the bottom-left corner of the button """
+        # Show the drawer menu at the button's bottom-left corner
+        self.drawer_menu.exec_(
+            self.drawer_button.mapToGlobal(
+                self.drawer_button.rect().bottomLeft()
+            )
+        )
+    def load_data_to_new_data_format(self):
+        data = self.shared_data.get_label_data()
+        new_data = get_new_data_format(data, lambda a,b :self.show_auswahl(f'Verbindungstyp von ({a,b}) auswählen',['fest','gelenkig']))
+        objects = new_data['objects']
+        connections = new_data['connections']
+
+    def show_auswahl(self, msg, options):
+        popup = QMessageBox()
+        popup.setWindowTitle("Auswahl")
+        popup.setText(msg)
+        popup.setIcon(QMessageBox.Question)
+
+        # Add buttons
+        buttons = {}
+        for option in options:
+            button = popup.addButton(option, QMessageBox.ActionRole)
+            buttons[option] = button
+
+        popup.exec_()
+
+        clicked_button = popup.clickedButton()
+        for label, button in buttons.items():
+            if button == clicked_button:
+                return label
+        return None 
+
+
+
+    def show_confimation(self,msg="Willst du wirklich fortfahren?"):
         # Create a message box
         popup = QMessageBox()
         popup.setWindowTitle("?")
-        popup.setText("Willst du wirklich fortfahren?")
+        popup.setText(msg)
         popup.setIcon(QMessageBox.Question)
 
         # Add Yes and No buttons
@@ -132,9 +181,14 @@ class Interacter(QMainWindow):
         except Exception as e:
             # You might want to add proper error handling here
             print(e)
-    def handle_export_selected(self, data):
+    def handle_export_selected(self):
         """Handle export button click from ExplorerWidget"""
         # Export the data to the selected path
         if self.show_confimation():
             data = self.display_area.get_data()
             self.explorer.export_to_selected_path(data)
+    def handle_export_to_new_format_selected(self, data):
+         if self.show_confimation():
+            data = self.display_area.get_data()
+            print('data',data)
+            #self.explorer.export_to_selected_path(data)

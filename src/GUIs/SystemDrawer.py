@@ -1,20 +1,29 @@
 
 import math
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QAction, QMessageBox
 from PyQt5.QtGui import QPainter, QColor, QPen, QTransform
 from PyQt5.QtCore import Qt, QPoint, QSize, QPointF
 
+from src.GUIs.CustomeWidgets.HoverWidget import HoverInfoWidget, show_edit_node_properties
 from src.normalize_system import get_normalization
 from src.statik.scheiben import get_scheiben 
 from src.statik.scan_pole import get_all_pole
 from src.statik.check_statik import check_static_of_groud_scheiben, check_static_of_system
 from src.statik.analyse import analyze_polplan
 
+from src.GUIs.CustomeWidgets.lager_drawer import drawLoslager, drawFestlager, drawFesteEinspannung, drawGelenk, drawNormalkraftEinspannung, drawQuerkraftGelenk, drawBiegesteifecke
+
+drawFunctions = {'Festlager': drawFestlager, 'Loslager': drawLoslager, 'Gelenk': drawGelenk, 'Normalkrafteinspannung': drawNormalkraftEinspannung, 'Querkraftgelenk': drawQuerkraftGelenk, 'Biegesteifecke': drawBiegesteifecke}
+
 class ObjectPainter(QWidget):
     def __init__(self, shared_data, scheiben= None, static_information= None, result=None):
         super().__init__()
         self.shared_data = shared_data
         self.shared_data.add_observer(self.init_variables)
+
+        ### DEBUG
+        self.setMouseTracking(True)
+        self.hover_info_widget = HoverInfoWidget(self)
 
         self.is_placing_object = False
         self.selected_object_type = None
@@ -33,6 +42,7 @@ class ObjectPainter(QWidget):
         self.scale_factor = 100
         self.offset = QPoint(0, 0) 
         self.last_mouse_pos = None
+        self.node_at_hover_pos = None
 
         self.drawGridBool = False
 
@@ -68,6 +78,7 @@ class ObjectPainter(QWidget):
         else:
             self.drawGridBool = True
         self.update()
+
     def paintEvent(self, event):
         qp = QPainter()
         qp.begin(self)
@@ -131,25 +142,40 @@ class ObjectPainter(QWidget):
         qp.drawText(end_x - 20, center_y - 10, "x")
         qp.drawText(center_x + 10, start_y + 20, "y")
 
-        # Draw grid numbers along axes
+        ### Draw grid numbers along axes
+        qp.save()  # Save the current painter state
+        qp.setPen(QPen(Qt.black))
+         
         for i in range(-self.view_range, self.view_range + 1):
-            # X-axis numbers
-            x = center_x + i * grid_spacing
             if i != 0:
-                qp.drawText(x - 10, center_y + 20, str(i))
+                # X-axis numbers
+                x = center_x + i * grid_spacing
                 
-            # Y-axis numbers
-            y = center_y - i * grid_spacing
-            if i != 0:
-                qp.drawText(center_x + 10, y + 5, str(i))            
+                qp.save()
+                qp.translate(x, center_y + 20)
+                qp.rotate(-self.rotation_angle)
+                qp.drawText(-10, 0, str(i))
+                qp.restore()
+                
+                # Y-axis numbers
+                y = center_y - i * grid_spacing
+                
+                qp.save()
+                qp.translate(center_x + 10, y + 5)
+                qp.rotate(-self.rotation_angle)
+                qp.drawText(0, 0, str(i))
+                qp.restore()
+
+        qp.restore()
 
     def drawObjects(self, qp):
-        colors = {
-            'Loslager': QColor(120, 0, 0),
-            'Festlager': QColor(0, 255, 0),
-            'Biegesteifecke': QColor(0, 0, 255),
-            'Normalkraftgelenk': QColor(255, 255, 0),
-        }
+        #colors = {
+        #    'Gelenk': QColor(128, 128, 128),
+        #    'Loslager': QColor(120, 0, 0),
+        #    'Festlager': QColor(0, 255, 0),
+        #    'Biegesteifecke': QColor(0, 0, 255),
+        #    'Normalkraftgelenk': QColor(255, 255, 0),
+        #}
 
         if self.objects:
             for obj_id, obj in self.objects.items():
@@ -161,19 +187,17 @@ class ObjectPainter(QWidget):
                 x = x * self.scale_factor + self.width() // 2
                 y = -y * self.scale_factor + self.height() // 2
 
-
-                if obj_id in self.feste_nodes:
-                    qp.setPen(QPen(Qt.black))
-                    qp.setBrush(QColor(255, 0, 0))
-                    qp.drawEllipse(x - 5, y - 5, 10, 10)
-                    qp.drawText(x + 10, y, obj_id)
-                
+                #print(f'{obj_id} at ({x}, {y}), type: {obj_type}, rotation: {rotation}')
+                if obj_type in drawFunctions.keys():
+                    drawFunctions[obj_type](qp, x, y, rotation)
                 else:
+                    
                     # Draw the object (circle)
-                    qp.setPen(QPen(Qt.black))
-                    qp.setBrush(colors.get(obj_type, QColor(128, 128, 128)))
-                    qp.drawEllipse(x - 5, y - 5, 10, 10)
+                    #qp.setPen(QPen(Qt.black))
+                    #qp.setBrush(colors.get(obj_type, QColor(128, 128, 128)))
+                    #qp.drawEllipse(x - 5, y - 5, 10, 10)
                     qp.drawText(x + 10, y, obj_id)
+
 
                 if rotation is not None:
                     # Set up the pen for a dotted line
@@ -292,32 +316,68 @@ class ObjectPainter(QWidget):
             qp.setPen(QPen(Qt.red, 2, Qt.SolidLine))"""
 
 
-    # For Drag stuff
     def mousePressEvent(self, event):
         if event.button() == Qt.MiddleButton:
+            ## Dragg
             self.last_mouse_pos = event.pos()
         elif event.button() == Qt.LeftButton:
+            ## Place Node
             if self.is_placing_object:
                 self.set_new_node(event.pos()) 
+            ## Edit Node
+            elif self.node_at_hover_pos:
+                self.objects[self.node_at_hover_pos] = show_edit_node_properties(self.objects[self.node_at_hover_pos])
+                self.shared_data.update_data('normalized_objects', self.objects)
+                self.init_variables()
+                self.update()
+                #print(show_edit_node_properties(self.objects[self.node_at_hover_pos]))
         self.update()
 
     def mouseMoveEvent(self, event):
+        self.check_for_node_at_hover_pos(event.pos())
         if self.is_placing_object:
-            # Just update to show potential placement position
             self.update()
-            
         elif self.last_mouse_pos is not None:
-
-            # Calculate how much the mouse has moved
+            ### Dragging stuff
             delta = event.pos() - self.last_mouse_pos
             self.offset += delta  # Update the offset with the delta
             self.last_mouse_pos = event.pos()  # Update the last mouse position
             self.update()  # Trigger a repaint
+        else:
+            if self.node_at_hover_pos:
+                self.drawInformationOfNode(event)
+            else:    
+                self.hover_info_widget.hide()
 
+       
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MiddleButton:
             self.last_mouse_pos = None  # Reset the last mouse position on release
 
+    def check_for_node_at_hover_pos(self, pos):
+        """Check if the mouse is hovering over a node and store the node ID"""
+        snapped_x, snapped_y = self.snap_to_grid(pos)
+        result = [_ for _ in self.objects if self.objects[_]['coordinates'] == (snapped_x, snapped_y)]
+        if len(result)==1:
+            if self.node_at_hover_pos != result[0]:
+                self.node_at_hover_pos = result[0]
+        elif len(result) == 0:
+            self.node_at_hover_pos = None
+        else:
+            print('Error: Multiple nodes at the same position')
+            self.node_at_hover_pos = None
+    
+    def drawInformationOfNode(self, event):
+        node_info = self.objects[self.node_at_hover_pos]
+        self.hover_info_widget.update_info({
+            'id': self.node_at_hover_pos, 
+            'coordinates': node_info['coordinates'], 
+            'type': node_info.get('type', 'Unknown')
+        })
+        # Position the widget near the mouse cursor
+        self.hover_info_widget.move(event.globalPos() + QPoint(10, 10))
+        self.hover_info_widget.show()
+  
     ### For add object stuff
     def set_placement_mode(self, is_placing, object_type=None):
         """Enable or disable object placement mode"""
@@ -358,6 +418,7 @@ class ObjectPainter(QWidget):
         snapped_y = snap_coordinate(grid_y)
         
         return snapped_x, snapped_y
+
     def set_new_node(self, pos):
         """Add a new node at the given position with letter-based ID"""
         # Get snapped coordinates
@@ -391,7 +452,7 @@ class ObjectPainter(QWidget):
             screen_y = -snapped_y * self.scale_factor + self.height() // 2
             
             # Draw preview circle
-            qp.setPen(QPen(Qt.black, 1, Qt.DashLine))
+            qp.setPen(QPen(Qt.black, 10, Qt.DashLine))
             qp.setBrush(Qt.transparent)
             qp.drawEllipse(screen_x - 5, screen_y - 5, 10, 10)
     
@@ -469,21 +530,23 @@ class ObjectPainter(QWidget):
     def display_debug_text(self, text):
         self.parent().floating_info.updateInfo(f"Debug Info\n{text}")
 
+
+    ### Statik stuff
     def load_scheiben(self):
         self.init_variables()
         if self.connections and self.objects:
             self.scheiben_data = get_scheiben(self.connections, self.objects)
-            #print(f'Scheiben_data.keys(){self.scheiben_data}')
+            print(f'Scheiben_data: {self.scheiben_data}')
     def load_pol_data(self):
         self.load_scheiben()
         if self.objects and self.scheiben_data:
             self.pol_data = get_all_pole(self.objects, self.scheiben_data['scheiben'], self.scheiben_data['scheiben_connection']) 
-            #print(f'Pol_data: {self.pol_data}')
+            print(f'Pol_data: {self.pol_data}')
     def load_feste_scheiben(self):
         self.load_pol_data()
         if self.pol_data and self.objects:
             self.static_data_of_scheiben = check_static_of_groud_scheiben(self.pol_data['pole_of_scheiben'],self.objects)
-            #print(f'static_of_:{self.static_data_of_scheiben}')
+            print(f'static_of_:{self.static_data_of_scheiben}')
     def load_visualization_of_polplan_data(self):
         self.load_pol_data()
         if self.objects and self.pol_data:
@@ -510,4 +573,22 @@ class ObjectPainter(QWidget):
             for key,e in self.static_information.items():
                 if e['static'] == True:
                     self.feste_nodes.extend(self.scheiben['scheiben'][key]['nodes'])
+    
+    ### Drawer Debug InfoMenu
+    def create_drawer_menu(self):
+        """Create the drawer menu"""
+        self.drawer_menu = QMenu(self)
+
+
+        #action1 = QAction('Load', self)
+        #action1.triggered.connect(self.load_data_to_new_data_format)
+        #self.drawer_menu.addAction(action1)
+    def show_drawer_menu(self):
+        """ Show the drawer menu at the bottom-left corner of the button """
+        # Show the drawer menu at the button's bottom-left corner
+        self.drawer_menu.exec_(
+            self.drawer_button.mapToGlobal(
+                self.drawer_button.rect().bottomLeft()
+            )
+        )
     

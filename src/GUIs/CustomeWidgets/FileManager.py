@@ -7,13 +7,14 @@ import sys
 import os
 
 class ExplorerWidget(QWidget):
-    def __init__(self, root_path=None, handle_image_selected=None, handle_json_selected=None, export_button_callback=None):
+    def __init__(self, root_path=None, handle_image_selected=None, handle_json_selected=None, export_button_callback=None,export_to_new_format_button_callback=None):
         super().__init__()
         #self.root_path = root_path or os.path.expanduser("~")
         
         self.handle_image_selected = handle_image_selected
         self.handle_json_selected = handle_json_selected
         self.export_button_callback = export_button_callback
+        self.export_to_new_format_button_callback = export_to_new_format_button_callback
         
         self.root_path = "./systems"
         self.init_ui()
@@ -58,6 +59,9 @@ class ExplorerWidget(QWidget):
         self.export_button = QPushButton("Export Selected File")
         layout.addWidget(self.export_button)
         self.export_button.clicked.connect(self.export_button_callback)
+        self.new_format_export_button = QPushButton("New Format")
+        layout.addWidget(self.new_format_export_button)
+        self.new_format_export_button.clicked.connect(self.export_to_new_format_button_callback)
         
         # Set some reasonable default size
         self.setMinimumSize(300, 400)
