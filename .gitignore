@@ -3,3 +3,5 @@ src/__pycache__/
 src/statik/__pycache__/
 src/GUIs/__pycache__/
 src/detection/__pycache__/
+src/GUIs/CustomeWidgets/__pycache__/
+src/__pycache__/
