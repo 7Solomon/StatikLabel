@@ -109,7 +109,7 @@ def drawNormalkraftEinspannung(qp, x, y, rotation):
     qp.restore()
 
 #def drawQuerkraftEinspannung(qp, x, y, rotation):
-def drawQuerkraftGelenk(qp, x, y, rotation):
+def drawQNGelenk(qp, x, y, rotation):
     qp.save()
 
     translateAndRotate(qp, x, y, rotation)
@@ -124,6 +124,21 @@ def drawQuerkraftGelenk(qp, x, y, rotation):
     qp.drawLine(start_point_x, start_point_y, end_point_x, end_point_y)
 
     qp.restore()
+#def drawNormalkraftGelenk(qp, x, y, rotation):
+#    qp.save()
+#
+#    translateAndRotate(qp, x, y, rotation)
+#    
+#    qp.setPen(QPen(Qt.black, 2))  # Black color for the lines
+#    start_point_x, start_point_y = (-line_length / 2, size / 2)
+#    end_point_x, end_point_y = (line_length / 2, size / 2)
+#    qp.drawLine(start_point_x, start_point_y, end_point_x, end_point_y)
+#    
+#    start_point_x, start_point_y = (-line_length / 2, - size / 2)
+#    end_point_x, end_point_y = (line_length / 2,- size / 2)
+#    qp.drawLine(start_point_x, start_point_y, end_point_x, end_point_y)
+#
+#    qp.restore()
 
 def drawBiegesteifecke(qp, x, y, rotation):
     qp.save()

@@ -11,9 +11,9 @@ from src.statik.scan_pole import get_all_pole
 from src.statik.check_statik import check_static_of_groud_scheiben, check_static_of_system
 from src.statik.analyse import analyze_polplan
 
-from src.GUIs.CustomeWidgets.lager_drawer import drawLoslager, drawFestlager, drawFesteEinspannung, drawGelenk, drawNormalkraftEinspannung, drawQuerkraftGelenk, drawBiegesteifecke
+from src.GUIs.CustomeWidgets.lager_drawer import drawLoslager, drawFestlager, drawFesteEinspannung, drawGelenk, drawNormalkraftEinspannung, drawQNGelenk, drawBiegesteifecke
 
-drawFunctions = {'Festlager': drawFestlager, 'Loslager': drawLoslager, 'Gelenk': drawGelenk, 'Normalkrafteinspannung': drawNormalkraftEinspannung, 'Querkraftgelenk': drawQuerkraftGelenk, 'Biegesteifecke': drawBiegesteifecke}
+drawFunctions = {'Festlager': drawFestlager, 'Loslager': drawLoslager, 'Gelenk': drawGelenk, 'Normalkrafteinspannung': drawNormalkraftEinspannung, 'Querkraftgelenk': drawQNGelenk, 'Biegesteifecke': drawBiegesteifecke, 'Einspannung': drawFesteEinspannung}
 
 class ObjectPainter(QWidget):
     def __init__(self, shared_data, scheiben= None, static_information= None, result=None):
@@ -57,6 +57,8 @@ class ObjectPainter(QWidget):
             #print(f'Objects: {objects}\nConnections: {connections}')
             self.shared_data.update_data('normalized_connections', connections)
             self.shared_data.update_data('normalized_objects', objects)
+        #else:
+            #QMessageBox.warning(self, 'No Data', 'Please load a valid system first!')
             #self.get_feste_scheiben_nodes()    
         #self.init_variables()
 
@@ -188,6 +190,7 @@ class ObjectPainter(QWidget):
                 y = -y * self.scale_factor + self.height() // 2
 
                 #print(f'{obj_id} at ({x}, {y}), type: {obj_type}, rotation: {rotation}')
+                #print(f'{obj_id} at ({x}, {y}), type: {obj_type}, rotation: {rotation}')
                 if obj_type in drawFunctions.keys():
                     drawFunctions[obj_type](qp, x, y, rotation)
                 else:
@@ -302,6 +305,8 @@ class ObjectPainter(QWidget):
         qp.drawLine(QPoint(0, 0), QPoint(-arrow_size, -arrow_size / 2))
         qp.drawLine(QPoint(0, 0), QPoint(-arrow_size, arrow_size / 2))
         qp.restore()
+
+
     def drawPolplan(self, qp):
 
         """for weg in self.visaulization_of_poplan['weglinien']:
@@ -372,7 +377,8 @@ class ObjectPainter(QWidget):
         self.hover_info_widget.update_info({
             'id': self.node_at_hover_pos, 
             'coordinates': node_info['coordinates'], 
-            'type': node_info.get('type', 'Unknown')
+            'type': node_info.get('type', 'Unknown'),
+            'connections': [_ for _ in node_info.get('connections', None)] if node_info.get('connections', None) else None
         })
         # Position the widget near the mouse cursor
         self.hover_info_widget.move(event.globalPos() + QPoint(10, 10))
@@ -429,7 +435,8 @@ class ObjectPainter(QWidget):
         new_object = {
             'type': self.selected_object_type,
             'coordinates': [snapped_x, snapped_y],
-            'rotation': None
+            'rotation': None,
+            'connections': None
         }
         self.objects[new_id] = new_object
 

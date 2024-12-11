@@ -155,8 +155,13 @@ def analyze_connections(connections, objects):
                 normalize_coordinate(y, origin_y, base_length)
             ),
             'type': obj_data['type'],
-            'rotation': normalize_angle(obj_data['rotation'], common_angle_axis1) if 'rotation' in obj_data and obj_data['rotation'] != None else None
+            'rotation': normalize_angle(obj_data['rotation'], common_angle_axis1) if 'rotation' in obj_data and obj_data['rotation'] != None else None,
         }
+
+        ## Add connections to normalized objects if they exist
+        if obj_data.keys().__contains__('connections'):
+            normalized_objects[obj_id]['connections'] = obj_data['connections']
+    
     
     return {
         'normalized_connections': length_relationship_connections,

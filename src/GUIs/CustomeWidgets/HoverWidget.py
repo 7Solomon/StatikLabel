@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 
 
 LAGER = [ "Festlager", "Loslager", "Festeeinspannung","Biegesteifecke", "Gelenk", "Normalkraftgelenk", "Querkraftgelenk"]
+CONNECTION_OPTIONS = ['fest', 'gelenkig']
 
 
 
@@ -20,7 +21,8 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QComboBox,
     QSlider,
-    QSpinBox
+    QSpinBox,
+    QPushButton
 )
 
 
@@ -38,6 +40,8 @@ class HoverInfoWidget(QWidget):
             Node ID: {node_info['id']}
             Coordinates: {node_info['coordinates']}
             Type: {node_info.get('type', 'Unknown')}
+            Rotation: {node_info.get('rotation', 'None')}
+            Connections: {node_info.get('connections', 'None')}
             """)
         self.adjustSize()
 
@@ -138,6 +142,88 @@ def show_edit_node_properties(node_info):
             property_inputs[key] = (slider, spin_box, checkbox)
             
             layout.addWidget(input_widget)
+        elif key == 'connections':
+            connection_Widget = QWidget()
+            connection_layout = QVBoxLayout(connection_Widget)
+            
+            # Store connection inputs for later access
+            connection_inputs = []
+            
+            for i, conn in enumerate(value):
+                hori_widget = QWidget()
+                hori_layout = QHBoxLayout(hori_widget)
+
+                # Destination input
+                dest_input = QLineEdit(str(conn.get('to', '')))
+                dest_input.setPlaceholderText("Enter node ID")
+                hori_layout.addWidget(dest_input)
+
+                # Connection type dropdown
+                type_combo = QComboBox()
+                type_combo.addItems(CONNECTION_OPTIONS)
+                # Set the current type if it exists
+                current_type = conn.get('type', CONNECTION_OPTIONS[0])
+                type_index = type_combo.findText(current_type)
+                if type_index >= 0:
+                    type_combo.setCurrentIndex(type_index)
+                hori_layout.addWidget(type_combo)
+
+                # Remove button
+                remove_button = QPushButton("Remove")
+                remove_button.clicked.connect(lambda checked, w=hori_widget: remove_connection(w))
+                hori_layout.addWidget(remove_button)
+
+                connection_layout.addWidget(hori_widget)
+                
+                # Store inputs for later access
+                connection_inputs.append((dest_input, type_combo))
+            
+            def add_new_connection():
+                # Create a new connection widget
+                new_hori_widget = QWidget()
+                new_hori_layout = QHBoxLayout(new_hori_widget)
+
+                # Destination input
+                dest_input = QLineEdit()
+                dest_input.setPlaceholderText("Enter node ID")
+                new_hori_layout.addWidget(dest_input)
+
+                # Connection type dropdown
+                type_combo = QComboBox()
+                type_combo.addItems(CONNECTION_OPTIONS)
+                new_hori_layout.addWidget(type_combo)
+
+                # Remove button
+                remove_button = QPushButton("Remove")
+                remove_button.clicked.connect(lambda checked, w=new_hori_widget: remove_connection(w))
+                new_hori_layout.addWidget(remove_button)
+
+                # Add the new connection to the layout
+                connection_layout.insertWidget(connection_layout.count() - 1, new_hori_widget)
+                
+                # Add to connection inputs
+                connection_inputs.append((dest_input, type_combo))
+
+            def remove_connection(widget):
+                # Find and remove the corresponding input from connection_inputs
+                for input_pair in connection_inputs:
+                    if input_pair[0].parent() == widget:
+                        connection_inputs.remove(input_pair)
+                        break
+                
+                # Remove the connection widget from layout
+                connection_layout.removeWidget(widget)
+                widget.deleteLater()
+
+            add_button = QPushButton("Add Connection")
+            add_button.clicked.connect(add_new_connection)
+            connection_layout.addWidget(add_button)
+            
+            # Store connection inputs in property_inputs
+            property_inputs['connections'] = connection_inputs
+            
+            layout.addWidget(connection_Widget)
+
         else:
             # Default input for other properties
             input_widget = QLineEdit(str(value))
@@ -164,12 +250,20 @@ def show_edit_node_properties(node_info):
                 elif key == 'rotation':
                     slider, spin_box, checkbox = widget
                     node_info[key] = slider.value() if checkbox.isChecked() else None
+                elif key == 'connections':
+                    connections = []
+                    for line_edit, combo_box in widget:
+                        connections.append({
+                            'to': line_edit.text(), 
+                            'type': combo_box.currentText()
+                        })
+                    node_info[key] = connections
                 elif isinstance(widget, QLineEdit):
                     node_info[key] = widget.text()
             except Exception as e:
                 QMessageBox.warning(None, "Error", f"Could not process property {key}: {str(e)}")
-                return None
+                return node_info
         
         return node_info
     
-    return None
+    return node_info

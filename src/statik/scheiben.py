@@ -12,7 +12,6 @@ helper_connection_dict = {
 }
 
 
-test = {'Festlager': 'Hauptpol'}
 def find_scheiben_connections(scheiben, objects):
     common_nodes_between_scheiben = {}
     for (i,set1), (j,set2) in itertools.combinations(scheiben.items(), 2):
@@ -71,6 +70,8 @@ def categories_connection_nodes(conenctions, objects):
     ## Dont know if needed
     feste_connection = []
     for node in conenctions.keys():
+        print(node[0], node[1])
+        print(objects[node[0]].get('connections'))
         if objects[node[0]]['type'] in helper_connection_dict['feste_connection'] or objects[node[1]]['type'] in helper_connection_dict['feste_connection']:
             feste_connection.append((node[0], node[1]))
     # Get scheiben from Biegesteifeecken

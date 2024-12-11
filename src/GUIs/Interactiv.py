@@ -12,7 +12,7 @@ from src.GUIs.labelerWidget import ImageLabelWidget
 from src.GUIs.CustomeWidgets.FileManager import ExplorerWidget
 from src.GUIs.CustomeWidgets.Drawer import MultiPanelDrawer
 from src.state import SharedData
-from src.detection.test import get_new_data_format
+from src.detection.newDataFormat import get_new_data_format, load_connected_to_into_objects
 
 class Interacter(QMainWindow):
     def __init__(self):
@@ -92,22 +92,41 @@ class Interacter(QMainWindow):
         """Create the drawer menu"""
         self.drawer_menu = QMenu(self)
 
-        action1 = QAction('Load', self)
-        action1.triggered.connect(self.load_data_to_new_data_format)
+        action1 = QAction('Ask for new datafromat', self)
+        action1.triggered.connect(self.open_ask_fiel_data_to_new_data_format)
         self.drawer_menu.addAction(action1)
+
+        action2 = QAction('Init new dataformat', self)
+        action2.triggered.connect(self.initialize_new_data_format)
+        self.drawer_menu.addAction(action2)
     def show_drawer_menu(self):
         """ Show the drawer menu at the bottom-left corner of the button """
-        # Show the drawer menu at the button's bottom-left corner
         self.drawer_menu.exec_(
             self.drawer_button.mapToGlobal(
                 self.drawer_button.rect().bottomLeft()
             )
         )
-    def load_data_to_new_data_format(self):
+    def open_ask_fiel_data_to_new_data_format(self):
         data = self.shared_data.get_label_data()
         new_data = get_new_data_format(data, lambda a,b :self.show_auswahl(f'Verbindungstyp von ({a,b}) auswählen',['fest','gelenkig']))
         objects = new_data['objects']
         connections = new_data['connections']
+        
+        self.shared_data.update_data('objects', objects)
+        self.shared_data.update_data('connections', connections)
+
+    def initialize_new_data_format(self):
+        data = self.shared_data.get_label_data()
+        new_objects= load_connected_to_into_objects(data)
+        #connections = new_data['connections']
+        self.shared_data.update_data('objects', new_objects)
+        #self.shared_data.update_data('objects', connections)   #### Braucht man noch nicht
+
+        ### Update Normalized System
+        self.system_widget.object_painter.normalize_system()
+        self.system_widget.object_painter.init_variables()
+        
+        
 
     def show_auswahl(self, msg, options):
         popup = QMessageBox()
