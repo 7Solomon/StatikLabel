@@ -22,9 +22,8 @@ def translateAndRotate(qp, x, y, rotation):
     # Translate and rotate for the Festlager
     qp.translate(x, y)                        
     if rotation:
-        qp.rotate(rotation + 180)##########!!! VERY SCUFFED
-    else:
-        qp.rotate(180)##########!!! VERY SCUFFED
+        qp.rotate(rotation)
+
 def drawLoslager(qp, x, y, rotation):
     qp.save()
     # Translate and rotate for the Loslager

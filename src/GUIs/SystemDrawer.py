@@ -65,9 +65,12 @@ class ObjectPainter(QWidget):
     def init_variables(self):
         data = self.shared_data.get_normalized_system()
         self.objects, self.connections = data.get('normalized_objects',{}), data.get('normalized_connections',[])
-        self.feste_nodes = []
+        self.feste_nodes = []    ### DELETE THIS BECAUSE OBSULET du kek
 
         self.update()
+    def init_scheiben_variables(self):
+        if self.scheiben_data:
+            self.scheiben_colors = self.generate_n_colors(len(self.scheiben_data['scheiben']))
     
     def initUI(self):
         self.setGeometry(100, 100, 600, 600)
@@ -99,6 +102,7 @@ class ObjectPainter(QWidget):
 
         self.drawObjects(qp)
         self.drawConnections(qp)
+        self.drawPole(qp)               # maybew here if is iocer
 
         self.drawPreview(qp)
 
@@ -221,10 +225,19 @@ class ObjectPainter(QWidget):
     def drawConnections(self, qp):
         if self.connections:
             for (p1, p2), conn in self.connections.items():
+                #print(f'Connection: {conn}')   # Conn ist data von connection
                 
-                # Check if Conenction is scheiben conenction
-                if p1 in self.feste_nodes and p2 in self.feste_nodes:
-                    qp.setPen(QPen(Qt.red, 2, Qt.SolidLine))  # Red lines for connections in 'scheiben'
+                # Get the scheibe of the connection
+                matching_element = None
+                if self.scheiben_data:
+                    for key, value in self.scheiben_data['scheiben'].items():
+                        if set([p1,p2]).issubset(value['nodes']):
+                            matching_element = key  #  könnte besser sein
+                            break
+                
+
+                if matching_element:
+                    qp.setPen(QPen(self.scheiben_colors[int(key)-1], 2, Qt.SolidLine))  # Red lines for connections in 'scheiben'
                 else:
                     qp.setPen(QPen(Qt.black, 2, Qt.SolidLine))  # Black for other connections
 
@@ -307,9 +320,30 @@ class ObjectPainter(QWidget):
         qp.drawLine(QPoint(0, 0), QPoint(-arrow_size, arrow_size / 2))
         qp.restore()
 
+    def drawPole(self, qp):
+        if self.pol_data:
+            pol_list = {}
+            qp.setPen(QPen(Qt.black, 2, Qt.SolidLine))
+            
+            # Track coordinate duplicates
+            coord_counts = {}      
+            for key, value in self.pol_data['pole'].items():
+                pol_list[key] = []
+                for i, pol in enumerate(value):
+                    (x,y) = self.objects[pol['node']]['coordinates']
+                    x = x * self.scale_factor + self.width() // 2
+                    y = -y * self.scale_factor + self.height() // 2
+                    coord = (x, y)
+                    coord_counts[coord] = coord_counts.get(coord, 0) + 1
+                    vertical_offset = 20 * (coord_counts[coord] - 1)
+
+                    display_text = f'g:{key}' if pol['type'] == 'WL' else f'{key}'
+                    qp.drawText(x+30, y+vertical_offset, display_text)
+
+
 
     def drawPolplan(self, qp):
-
+        
         """for weg in self.visaulization_of_poplan['weglinien']:
             x1, y1 = weg[0]
             x2, y2 = weg[1]
@@ -492,6 +526,13 @@ class ObjectPainter(QWidget):
         super().resizeEvent(event)
         # Adjust view if needed based on new size
         self.update()
+    def generate_n_colors(self,n):
+        colors = []
+        for i in range(n):
+            hue = i / n  # Evenly distribute hues between 0 and 1
+            color = QColor.fromHsvF(hue, 1.0, 1.0)  # Full saturation and value for bright colors
+            colors.append(color)
+        return colors
     
     ### Rotate stuff
     def rotate_view(self, degrees):
@@ -559,13 +600,22 @@ class ObjectPainter(QWidget):
     def load_scheiben(self):
         self.init_variables()
         if self.connections and self.objects:
-            self.scheiben_data = get_scheiben(self.connections, self.objects)
-            print(f'Scheiben_data: {self.scheiben_data["scheiben"]}')
+            if all(isinstance(value, dict) and 'connections' in value for value in self.objects.values()):
+                self.scheiben_data = get_scheiben(self.connections, self.objects)
+                self.init_scheiben_variables()
+                self.update()
+            else:
+                QMessageBox.warning(None, "Error", "Du hast den neuen Datetyp noch nicht inited!!")
+
+
     def load_pol_data(self):
-        self.load_scheiben()
+        if not self.scheiben_data:
+            self.load_scheiben()
+
         if self.objects and self.scheiben_data:
             self.pol_data = get_all_pole(self.objects, self.scheiben_data['scheiben'], self.scheiben_data['scheiben_connection']) 
-            print(f'Pol_data: {self.pol_data}')
+            #print(f'Pol_data: {self.pol_data}')
+
     def load_feste_scheiben(self):
         self.load_pol_data()
         if self.pol_data and self.objects:
@@ -589,14 +639,15 @@ class ObjectPainter(QWidget):
         self.load_feste_scheiben()
         if self.static_data_of_scheiben and self.pol_data and self.objects:
             self.static_of_system = check_static_of_system(self.static_data_of_scheiben, self.pol_data['pole'], self.objects)
-            raise NotImplementedError("Du Kek das ist noch nicht Implementiert!!")
+            #raise NotImplementedError("Du Kek das ist noch nicht Implementiert!!")
+            QMessageBox.warning(None, "Error", f"Du Kek das ist noch nicht Implementiert!!")
  
 
-    def get_feste_scheiben_nodes(self):
-        if self.static_information:
-            for key,e in self.static_information.items():
-                if e['static'] == True:
-                    self.feste_nodes.extend(self.scheiben['scheiben'][key]['nodes'])
+    #def get_feste_scheiben_nodes(self):
+    #    if self.static_information:
+    #        for key,e in self.static_information.items():
+    #            if e['static'] == True:
+    #                self.feste_nodes.extend(self.scheiben['scheiben'][key]['nodes'])
     
     ### Drawer Debug InfoMenu
     def create_drawer_menu(self):

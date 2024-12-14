@@ -31,14 +31,15 @@ def detect_scheiben(connections, objects, initial_scheiben=None):
     def find_triangles():
         triangles = []
         for node in graph:
-            neighbors = list(graph[node].keys())
-            for i in range(len(neighbors)):
-                for j in range(i + 1, len(neighbors)):
-                    # Check if the two neighbors are also connected
-                    if neighbors[j] in graph[neighbors[i]]:
-                        triangle = {node, neighbors[i], neighbors[j]}
-                        triangles.append(triangle)
+            neighbors = list(graph[node]['neighbors'])
+            for i, first_neighbor in enumerate(neighbors):
+                for j, second_neighbor in enumerate(neighbors[i+1:], start=i+1):
+                    if second_neighbor in graph[first_neighbor]['neighbors']:
+                        triangle = {node, first_neighbor, second_neighbor}
+                        if triangle not in triangles:
+                            triangles.append(triangle)
         return triangles
+    
     def expand_scheibe(scheibe, processed_nodes):
         expanded = True
         while expanded:
@@ -86,9 +87,8 @@ def detect_scheiben(connections, objects, initial_scheiben=None):
     
     # Modify isolated nodes handling
     isolated_nodes = all_nodes - nodes_in_scheiben
-    print('DEBUG isolated_nodes', isolated_nodes)
     isolated_graph = {node: graph[node] for node in isolated_nodes}
-    print('DEBUG isolated_graph', isolated_graph)
+
     # Create scheiben for isolated nodes by adding their neighbors
     isolated_scheiben = get_scheiben_from_lonely_nodes(isolated_graph)
     expa_scheiben.extend([set(_) for _ in isolated_scheiben])

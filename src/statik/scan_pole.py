@@ -128,8 +128,6 @@ def get_all_pole(objects, scheiben, scheiben_connection):
 
     #bind_pole = get_bind_pole(main_pole)     # Bind pole are the not trivial poles that comec from combination of two poles 
     pole =  combine_pole(main_pole,scheiben_connection)   # """ Was this pole =  combine_pole(main_pole,bind_pole,scheiben_connection)!!!
-    print('pole',pole)
-    print('pole_of_scheiben',pole_of_scheiben)
     return {
         'pole_of_scheiben':pole_of_scheiben,
         'pole': pole

@@ -152,7 +152,7 @@ def analyze_connections(connections, objects):
         normalized_objects[obj_id] = {
             'coordinates': (
                 normalize_coordinate(x, origin_x, base_length),
-                normalize_coordinate(y, origin_y, base_length)
+                - normalize_coordinate(y, origin_y, base_length)    # Negate y-coordinate to match the coordinate system
             ),
             'type': obj_data['type'],
             'rotation': normalize_angle(obj_data['rotation'], common_angle_axis1) if 'rotation' in obj_data and obj_data['rotation'] != None else None,

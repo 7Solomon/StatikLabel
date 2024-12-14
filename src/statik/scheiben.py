@@ -67,10 +67,8 @@ def categories_connection_nodes(conenctions, objects):
             feste_connection.append((n1, n2))   
         if n1 in [_['to'] for _ in objects[n2]['connections'] if _['type'] == 'fest']:
             feste_connection.append((n2, n1))
-    print('DEBUG feste_connection', feste_connection)
     # Connect overlapping elements
     through_fest_connection_verbundene_scheiben = connect_overlapping_elements(feste_connection, objects)
-    print('DEBUG WICHTIG HIER GLAUBE', through_fest_connection_verbundene_scheiben)
     ## Get the Scheiben
     through_graph_detected_scheiben = detect_scheiben(conenctions, objects, initial_scheiben=through_fest_connection_verbundene_scheiben)
     return through_graph_detected_scheiben['final_scheiben']
