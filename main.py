@@ -1,6 +1,7 @@
 import sys
 import json
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QFont
 from src.GUIs.SystemDrawer import ObjectPainter
 from src.GUIs.Interactiv import Interacter
 
@@ -46,6 +47,8 @@ def static():
 def test_interacter():
     
     app = QApplication(sys.argv)
+    font = QFont("Arial", 8) 
+    app.setFont(font)
     window = Interacter()
     
     window.show()

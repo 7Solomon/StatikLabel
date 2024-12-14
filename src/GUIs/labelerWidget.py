@@ -61,7 +61,8 @@ class ImageWidget(QLabel):
                         objects_to_observer[new_key] = {
                             "type": obj["type"],
                             "coordinates": (scalar_x, scalar_y),
-                            "rotation": obj.get("rotation", None)
+                            "rotation": obj.get("rotation", None),
+                            "connections": obj.get("connections", None)
                         }
                         #self.objects[new_key] = {
                         #    "type": obj["type"],

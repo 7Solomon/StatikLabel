@@ -178,7 +178,7 @@ class ObjectPainter(QWidget):
         #    'Biegesteifecke': QColor(0, 0, 255),
         #    'Normalkraftgelenk': QColor(255, 255, 0),
         #}
-
+        
         if self.objects:
             for obj_id, obj in self.objects.items():
                 obj_type = obj['type']
@@ -192,6 +192,7 @@ class ObjectPainter(QWidget):
                 #print(f'{obj_id} at ({x}, {y}), type: {obj_type}, rotation: {rotation}')
                 #print(f'{obj_id} at ({x}, {y}), type: {obj_type}, rotation: {rotation}')
                 if obj_type in drawFunctions.keys():
+                    qp.drawText(x + 10, y, obj_id)
                     drawFunctions[obj_type](qp, x, y, rotation)
                 else:
                     
@@ -331,11 +332,27 @@ class ObjectPainter(QWidget):
                 self.set_new_node(event.pos()) 
             ## Edit Node
             elif self.node_at_hover_pos:
-                self.objects[self.node_at_hover_pos] = show_edit_node_properties(self.objects[self.node_at_hover_pos])
-                self.shared_data.update_data('normalized_objects', self.objects)
-                self.init_variables()
-                self.update()
-                #print(show_edit_node_properties(self.objects[self.node_at_hover_pos]))
+                self.update_node_properties()        
+        self.update()
+
+    def update_node_properties(self,):
+        self.hover_info_widget.hide()    ## For Ui purposes looks nicer
+        self.objects[self.node_at_hover_pos] = show_edit_node_properties(self.objects[self.node_at_hover_pos])
+                
+        # Für Übergreifen von Daten    #### Ist nocht so nice, aber weiß nicht wie ich es besser machen soll
+        try:
+            connection_data = self.objects[self.node_at_hover_pos].get('connections', None)
+            if connection_data:
+                object_data = self.shared_data.get_label_data()['objects']
+                object_data[self.node_at_hover_pos]['connections'] = connection_data
+                self.shared_data.update_data('objects', object_data)
+        except:
+            print('Error: Could not update connection data')
+            print('THIS SHOULD BE IMPLEMETED AND FIXED IN A WAY BETTER WAY DU KEK')
+                
+        # Normal update of the normalized data
+        self.shared_data.update_data('normalized_objects', self.objects)
+        self.init_variables()
         self.update()
 
     def mouseMoveEvent(self, event):
@@ -378,7 +395,7 @@ class ObjectPainter(QWidget):
             'id': self.node_at_hover_pos, 
             'coordinates': node_info['coordinates'], 
             'type': node_info.get('type', 'Unknown'),
-            'connections': [_ for _ in node_info.get('connections', None)] if node_info.get('connections', None) else None
+            'connections': node_info.get('connections', [])
         })
         # Position the widget near the mouse cursor
         self.hover_info_widget.move(event.globalPos() + QPoint(10, 10))
@@ -543,7 +560,7 @@ class ObjectPainter(QWidget):
         self.init_variables()
         if self.connections and self.objects:
             self.scheiben_data = get_scheiben(self.connections, self.objects)
-            print(f'Scheiben_data: {self.scheiben_data}')
+            print(f'Scheiben_data: {self.scheiben_data["scheiben"]}')
     def load_pol_data(self):
         self.load_scheiben()
         if self.objects and self.scheiben_data:

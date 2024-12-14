@@ -1,7 +1,7 @@
 import json
 import mimetypes
 from PyQt5.QtWidgets import (QWidget, QTreeView, QVBoxLayout, QFileSystemModel, 
-                            QApplication, QStyle, QHeaderView, QPushButton)
+                            QApplication, QStyle, QHeaderView, QPushButton, QDialog, QDialogButtonBox, QLabel, QHBoxLayout, QLineEdit)
 from PyQt5.QtCore import Qt, QDir
 import sys
 import os
@@ -86,12 +86,51 @@ class ExplorerWidget(QWidget):
         if indexes:
             return self.model.filePath(indexes[0])
         return None
+    def display_current_header(self, header_data):
+        dialog = QDialog()
+        dialog.setWindowTitle("Edit Header")
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+
+        line_edits = {}
+        if header_data:
+            for key, value in header_data.items():
+                h_widget = QWidget()
+                h_layout = QHBoxLayout(h_widget)
+                h_layout.addWidget(QLabel(f"{key}"))
+                line_edit = QLineEdit()
+                line_edit.setText(str(value))
+                h_layout.addWidget(line_edit)
+                
+                line_edits[key] = line_edit
+                layout.addWidget(h_widget)
+        else:
+            layout.addWidget(QLabel("Keine header data gefunden, aber wird trotzdem erstellt"))
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+
+        if dialog.exec_() == QDialog.Accepted:
+            updated_header_data = {}
+            for key, line_edit in line_edits.items():
+                updated_header_data[key] = line_edit.text()
+            print("Updated Header Data:", updated_header_data)
+            return updated_header_data
+        
+        return None
     
     def export_to_selected_path(self, data):
         src_path = self.get_selected_path()
         if src_path:
-            file_name = os.path.join(src_path, 'label.json')
+            if src_path.endswith('label.json'):
+                file_name = src_path
+            else:
+                file_name = os.path.join(src_path, 'label.json')
         if file_name:
+            header_data = self.display_current_header(data.get('header', None))
+            to_save = {'header':header_data, **data}
             with open(file_name, 'w') as f:
                 json.dump(data, f, indent=2)
         else:

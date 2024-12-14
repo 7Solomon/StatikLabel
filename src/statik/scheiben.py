@@ -1,8 +1,8 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 import itertools
 
 import numpy as np
-from src.statik.fachwerk import *
+from src.statik.scheiben_detection import *
 
 
 helper_connection_dict = {
@@ -11,8 +11,20 @@ helper_connection_dict = {
     'feste_connection': ['Biegesteifecke'],
 }
 
+def _has_fixed_connection(from_node, to_node, objects):
+    """
+    Check if the from_node has a fixed connection to the to_node.
+    """
+    # Safely get connections, defaulting to empty list if node not found
+    node_connections = objects.get(from_node, {}).get('connections', [])
+    
+    # Check if there's a fixed connection to the specific node
+    return any(
+        conn.get('type') == 'fest' and conn.get('to') == to_node 
+        for conn in node_connections
+    )
 
-def find_scheiben_connections(scheiben, objects):
+def find_scheiben_connections(scheiben, objects):   ### Vielleicht noch Falsch
     common_nodes_between_scheiben = {}
     for (i,set1), (j,set2) in itertools.combinations(scheiben.items(), 2):
         intersection = set1['nodes'].intersection(set2['nodes'])
@@ -21,71 +33,56 @@ def find_scheiben_connections(scheiben, objects):
             common_nodes_between_scheiben[i, j] = [{'type':  'WL' if objects[_]['type'] in helper_connection_dict['wl_connection'] else 'P','node':_, 'rotation': objects[_].get('rotation', None) } for _ in intersection]      ### !!! Führt zu fehler, da connection auch Normal oder Querkraftgelenk sein kann
     return common_nodes_between_scheiben
 
-def find_repeated_nodes(connections):
-    node_count = defaultdict(int)  # Dictionary to count occurrences of each node
-    # Count the occurrences of each node
-    for node1, node2 in connections:
-        node_count[node1] += 1
-        node_count[node2] += 1
-    # Find nodes that appear more than once
-    connection_nodes = [node for node, count in node_count.items() if count > 1]
-    return connection_nodes
-def connect_overlapping_elements(connections, objects):
+def connect_overlapping_elements(connections, objects) ->list[set]:
+    """ 
+    die Function ist noch Falsch, da Beie Connection richutngen genommen werden,
+    aber nur wenn to in die eine richtung kommt soll es Fest sein.
+    """
     # Create a dictionary to store sets of connected elements
-    connected_sets = {}
+    connected_sets = []
     
     for i, (a, b) in enumerate(connections):
-        # Find existing sets that contain either element
-        existing_sets = [s for s in connected_sets if a in s or b in s]
-        
-        if not existing_sets:
-            # If no existing sets, create a new one
+        if not connected_sets:              # Erster Durchlauf
             new_set = frozenset([a, b])
-            connected_sets[new_set] = new_set
+            connected_sets.append(new_set)
         else:
-            # Check if the common element satisfies the condition
-            common_element = a if any(a in s for s in existing_sets) else b
-            if objects[common_element]['type'] in helper_connection_dict['feste_connection']:
-                if len(existing_sets) == 1:
-                    # If one existing set, add the new element to it
-                    existing_set = existing_sets[0]
-                    new_set = frozenset(existing_set | {a, b})
-                    del connected_sets[existing_set]
-                    connected_sets[new_set] = new_set
+            test = set([a,b])
+
+            for i, fset in enumerate(connected_sets):
+                intersection=  set([a,b]) & fset 
+                if intersection:
+                    if any([_has_fixed_connection(common_node,ts, objects) for common_node in intersection for ts in test]):
+                        connected_sets[i] = connected_sets[i] | frozenset([a, b])
+                    else:
+                        connected_sets.append(set([a, b]))
                 else:
-                    # If multiple existing sets, merge them
-                    merged_set = frozenset(set.union(*(connected_sets[s] for s in existing_sets), {a, b}))
-                    for s in existing_sets:
-                        del connected_sets[s]
-                    connected_sets[merged_set] = merged_set
-            else:
-                # If condition not met, add as a separate set
-                new_set = frozenset([a, b])
-                connected_sets[new_set] = new_set
-    
-    # Convert frozensets back to regular sets for the final result
-    return [set(s) for s in connected_sets.values()]
+                    connected_sets.append(set([a, b]))
+    return connected_sets
 
 def categories_connection_nodes(conenctions, objects):
-    ## Dont know if needed
+    ## Get all nodes that are fest connected
     feste_connection = []
-    for node in conenctions.keys():
-        print(node[0], node[1])
-        print(objects[node[0]].get('connections'))
-        if objects[node[0]]['type'] in helper_connection_dict['feste_connection'] or objects[node[1]]['type'] in helper_connection_dict['feste_connection']:
-            feste_connection.append((node[0], node[1]))
-    # Get scheiben from Biegesteifeecken
-    scheiben = connect_overlapping_elements(feste_connection, objects)
-    # Get scheiben from Fachwerk
-    result = detect_scheiben(conenctions, initial_scheiben=scheiben)
-    return result
+    for (n1, n2) in conenctions.keys():
+        if n2 in [_['to'] for _ in objects[n1]['connections'] if _['type'] == 'fest']:
+            feste_connection.append((n1, n2))   
+        if n1 in [_['to'] for _ in objects[n2]['connections'] if _['type'] == 'fest']:
+            feste_connection.append((n2, n1))
+    print('DEBUG feste_connection', feste_connection)
+    # Connect overlapping elements
+    through_fest_connection_verbundene_scheiben = connect_overlapping_elements(feste_connection, objects)
+    print('DEBUG WICHTIG HIER GLAUBE', through_fest_connection_verbundene_scheiben)
+    ## Get the Scheiben
+    through_graph_detected_scheiben = detect_scheiben(conenctions, objects, initial_scheiben=through_fest_connection_verbundene_scheiben)
+    return through_graph_detected_scheiben['final_scheiben']
 
 
 def get_scheiben(conenctions, objects):
-    # Get Scheibe
-    result = categories_connection_nodes(conenctions, objects)
-    # scheiben data in schöne liste
-    scheiben = {i+1:{"nodes": scheiben_data} for i, scheiben_data in enumerate(result['final_scheiben'])}
+    """
+    Detects Scheiben and then finds the connections between them so the nebenpole
+    """
+    foud_scheiben_sets = categories_connection_nodes(conenctions, objects)
+    scheiben = {i+1:{"nodes": scheiben_data} for i, scheiben_data in enumerate(foud_scheiben_sets)}
+
     scheiben_connection = find_scheiben_connections(scheiben, objects)
     return {
         'scheiben_connection':scheiben_connection,
