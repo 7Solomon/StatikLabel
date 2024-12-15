@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox
 from PyQt5.QtGui import QPixmap, QPainter, QPen, QCursor
 from PyQt5.QtCore import Qt, QPoint, QSize, QRect
 
+from src.GUIs.CustomeWidgets.HoverWidget import HoverInfoWidget, show_edit_node_properties_for_labeler
+
 #from src.state import StateManager
 
 
@@ -18,6 +20,9 @@ class ImageWidget(QLabel):
         self.original_pixmap = None
         self.max_size = QSize(1920, 1080)
         
+        self.setMouseTracking(True)
+        self.hover_info_widget = HoverInfoWidget(self)
+
         self.shared_data = shared_data 
         self.shared_data.add_observer(self.get_variables)
 
@@ -29,19 +34,11 @@ class ImageWidget(QLabel):
         self.object_counter = len(self.objects)
         
         self.connection_start = None
-
+        self.node_at_hover_pos = None
         self.rotation_object = None
         self.rotation_angle = 0
         self.is_rotating = False
         
-    def setPixmap(self, pixmap):
-        """Override setPixmap to store original and handle scaling"""
-        if isinstance(pixmap, QPixmap):
-            self.original_pixmap = pixmap
-            scaled_pixmap = self.get_scaled_pixmap()
-            super().setPixmap(scaled_pixmap)
-            #self.draw_objects()  # Redraw objects when pixmap changes
-    
     def load_data(self, data):
         """Load a previous state into the widget"""
 
@@ -85,6 +82,15 @@ class ImageWidget(QLabel):
                 #self.connections = connections
         self.update()
     
+
+    ### Paint Stuff
+    def setPixmap(self, pixmap):
+        """Override setPixmap to store original and handle scaling"""
+        if isinstance(pixmap, QPixmap):
+            self.original_pixmap = pixmap
+            scaled_pixmap = self.get_scaled_pixmap()
+            super().setPixmap(scaled_pixmap)
+            #self.draw_objects()  # Redraw objects when pixmap changes
     def get_scaled_pixmap(self):
         """Get properly scaled pixmap maintaining aspect ratio"""
         if not self.original_pixmap:
@@ -95,7 +101,7 @@ class ImageWidget(QLabel):
             Qt.KeepAspectRatio,
             Qt.SmoothTransformation
         )
-
+    
     def paintEvent(self, event):
         painter = QPainter(self)
         # Draw black background
@@ -151,21 +157,17 @@ class ImageWidget(QLabel):
                 if self.rotation_object:
                     obj_coords = self.objects[self.rotation_object]["coordinates"]
                     obj_point = self.image_to_widget_coords(*obj_coords)
-
                     # Calculate end point of the rotation line (extend to a reasonable length)
                     rotation_line_length = 100
                     angle_rad = math.radians(self.rotation_angle)
-                    (end_x, end_y) = (widget_point.x() + rotation_line_length * math.cos(angle_rad), widget_point.y() + rotation_line_length * math.sin(angle_rad))
-                    (start_x, start_y) = (widget_point.x() - rotation_line_length * math.cos(angle_rad), widget_point.y() - rotation_line_length * math.sin(angle_rad))
+                    (end_x, end_y) = (obj_point.x() + rotation_line_length * math.cos(angle_rad), obj_point.y() + rotation_line_length * math.sin(angle_rad))
+                    (start_x, start_y) = (obj_point.x() - rotation_line_length * math.cos(angle_rad), obj_point.y() - rotation_line_length * math.sin(angle_rad))
                     end_point = QPoint(int(end_x), int(end_y))
                     start_point = QPoint(int(start_x), int(start_y))
 
                     # Draw the rotation line
                     painter.setPen(QPen(Qt.red, 4, Qt.DotLine))
                     painter.drawLine(start_point, end_point)
-                
-                       
-                
 
     def get_image_rect(self):
         """Get the actual rectangle where the image is displayed within the widget"""
@@ -219,7 +221,7 @@ class ImageWidget(QLabel):
         y = image_rect.y() + (float(y_ratio) * image_rect.height())
         return QPoint(int(x), int(y))
 
-    def find_clicked_object(self, pos):
+    def find_object_at_pos(self, pos):
         """Find object near the clicked position"""
         if not self.original_pixmap:
             return None
@@ -230,7 +232,6 @@ class ImageWidget(QLabel):
             return None
             
         click_x, click_y = image_coords
-        
         # Search for nearby objects
         click_radius = 0.02  # 2% of image size as click radius
         for identifier, obj in self.objects.items():
@@ -239,6 +240,7 @@ class ImageWidget(QLabel):
             if distance < click_radius:
                 return identifier
         return None
+    
 
     def mousePressEvent(self, event):
         pos = event.pos()
@@ -250,6 +252,8 @@ class ImageWidget(QLabel):
             self.add_connection(pos)
         elif parent.rotation_button.isChecked():
             self.handle_rotation_start(pos)
+        elif self.node_at_hover_pos:
+            show_edit_node_properties_for_labeler(self.objects[self.node_at_hover_pos])
         else:
             object_type = parent.object_combo.currentText()
             self.place_object(pos, object_type)
@@ -281,7 +285,7 @@ class ImageWidget(QLabel):
         self.handle_connection(pos)
         self.update()  
     def handle_connection(self, pos):
-        clicked_object = self.find_clicked_object(pos)
+        clicked_object = self.find_object_at_pos(pos)
         if clicked_object:
             if self.connection_start is None:
                 self.connection_start = clicked_object
@@ -297,11 +301,16 @@ class ImageWidget(QLabel):
 
     ## Rotate objects
     def handle_rotation_start(self, pos):
-        clicked_object = self.find_clicked_object(pos)
+        clicked_object = self.find_object_at_pos(pos)
         if clicked_object:
             self.rotation_object = clicked_object
             self.is_rotating = True
     def mouseMoveEvent(self, event):
+        self.check_for_node_at_hover_pos(event.pos())
+        if self.node_at_hover_pos:
+            self.drawInformationOfNode(event)
+        else:
+            self.hover_info_widget.hide()
         if self.is_rotating and self.rotation_object:
             pos = event.pos()
             obj_coords = self.objects[self.rotation_object]["coordinates"]
@@ -310,11 +319,18 @@ class ImageWidget(QLabel):
             # Rotation angle in degrees
             dx = pos.x() - obj_point.x()
             dy = pos.y() - obj_point.y()
-            self.rotation_angle = math.degrees(math.atan2(dy, dx))
+            
+            ##### HIER FALSCH
+            rotation_angle = 90 + math.degrees(math.atan2(dy, dx))   # Minus 90 da 0 vertical sein soll, da tan 0 Horizontal macht
+            if rotation_angle < 0:
+                rotation_angle += 360
+            self.rotation_angle = rotation_angle
             self.update()
     def mouseReleaseEvent(self, event):
         if self.is_rotating:
             # Save the rotation angle to the object
+            print('---')
+            print(self.rotation_angle)
             self.objects[self.rotation_object]["rotation"] = self.rotation_angle
             self.is_rotating = False
             self.rotation_object = None
@@ -327,6 +343,24 @@ class ImageWidget(QLabel):
         if self.original_pixmap:
             scaled_pixmap = self.get_scaled_pixmap()
             super().setPixmap(scaled_pixmap)
+    
+    
+    def drawInformationOfNode(self, event):
+        node_info = self.objects[self.node_at_hover_pos]
+        self.hover_info_widget.update_info({
+            'id': self.node_at_hover_pos, 
+            'coordinates': node_info['coordinates'], 
+            'rotation': node_info.get('rotation', 'Unknown'),
+            'type': node_info.get('type', 'Unknown'),
+            'connections': node_info.get('connections', [])
+        })
+        # Position the widget near the mouse cursor
+        self.hover_info_widget.move(event.globalPos() + QPoint(10, 10))
+        self.hover_info_widget.show()
+    def check_for_node_at_hover_pos(self, pos):
+        """Check if the mouse is hovering over a node and store the node ID"""
+        self.node_at_hover_pos = self.find_object_at_pos(pos)
+
 
 
 class ImageLabelWidget(QWidget):

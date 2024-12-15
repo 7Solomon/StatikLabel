@@ -55,9 +55,13 @@ def get_coordinate_system_rotation(angles: list, bin_size=10):
     if abs(secondary_angle - target_angle) > abs((secondary_angle + 90) % 180 - target_angle):
         secondary_angle = (secondary_angle + 90) % 180
     
+
     # Determine the rotation of the coordinate system
     rotation = min(primary_angle, secondary_angle)
-    
+
+    # Ensure rotation is between 0 and 90
+    rotation = rotation % 90
+
     return {
         'rotation': rotation,
         'primary_axis': primary_angle,
@@ -124,7 +128,7 @@ def normalize_angle(angle, common_angle):
     normalized_angle = (angle % 360 + 360) % 360
     normalized_common_angle = (common_angle % 360 + 360) % 360
     difference = normalized_angle - normalized_common_angle
-    return abs(round(difference / 10) * 10)
+    return abs(round(difference / 5) * 5)
 
 def normalize_coordinate(coord, origin_coord, base_length):
     normalized = (coord - origin_coord) / base_length
@@ -148,6 +152,9 @@ def analyze_connections(connections, objects):
     # Create new normalized objects dictionary
     normalized_objects = {}
     for obj_id, obj_data in objects.items():
+        print('---')
+        print(obj_id)
+        print(obj_data['rotation'])
         x, y = obj_data['coordinates']
         normalized_objects[obj_id] = {
             'coordinates': (

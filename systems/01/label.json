@@ -6,7 +6,17 @@
         0.11018363939899833,
         0.04294478527607362
       ],
-      "rotation": null
+      "rotation": null,
+      "connections": [
+        {
+          "to": "B",
+          "type": "gelenkig"
+        },
+        {
+          "to": "C",
+          "type": "gelenkig"
+        }
+      ]
     },
     "B": {
       "type": "Gelenk",
@@ -14,7 +24,21 @@
         0.4791318864774624,
         0.03680981595092025
       ],
-      "rotation": null
+      "rotation": null,
+      "connections": [
+        {
+          "to": "A",
+          "type": "gelenkig"
+        },
+        {
+          "to": "C",
+          "type": "gelenkig"
+        },
+        {
+          "to": "D",
+          "type": "gelenkig"
+        }
+      ]
     },
     "C": {
       "type": "Gelenk",
@@ -22,7 +46,25 @@
         0.48414023372287146,
         0.2085889570552147
       ],
-      "rotation": null
+      "rotation": null,
+      "connections": [
+        {
+          "to": "A",
+          "type": "gelenkig"
+        },
+        {
+          "to": "B",
+          "type": "gelenkig"
+        },
+        {
+          "to": "D",
+          "type": "gelenkig"
+        },
+        {
+          "to": "E",
+          "type": "gelenkig"
+        }
+      ]
     },
     "D": {
       "type": "Gelenk",
@@ -30,7 +72,29 @@
         0.7712854757929883,
         0.03885480572597137
       ],
-      "rotation": null
+      "rotation": null,
+      "connections": [
+        {
+          "to": "C",
+          "type": "gelenkig"
+        },
+        {
+          "to": "B",
+          "type": "gelenkig"
+        },
+        {
+          "to": "E",
+          "type": "gelenkig"
+        },
+        {
+          "to": "F",
+          "type": "gelenkig"
+        },
+        {
+          "to": "H",
+          "type": "gelenkig"
+        }
+      ]
     },
     "E": {
       "type": "Gelenk",
@@ -38,7 +102,29 @@
         0.6293823038397329,
         0.3783231083844581
       ],
-      "rotation": null
+      "rotation": null,
+      "connections": [
+        {
+          "to": "C",
+          "type": "gelenkig"
+        },
+        {
+          "to": "D",
+          "type": "gelenkig"
+        },
+        {
+          "to": "F",
+          "type": "gelenkig"
+        },
+        {
+          "to": "F",
+          "type": "gelenkig"
+        },
+        {
+          "to": "G",
+          "type": "gelenkig"
+        }
+      ]
     },
     "F": {
       "type": "Gelenk",
@@ -46,7 +132,25 @@
         0.7679465776293823,
         0.3803680981595092
       ],
-      "rotation": null
+      "rotation": null,
+      "connections": [
+        {
+          "to": "D",
+          "type": "gelenkig"
+        },
+        {
+          "to": "E",
+          "type": "gelenkig"
+        },
+        {
+          "to": "E",
+          "type": "gelenkig"
+        },
+        {
+          "to": "G",
+          "type": "gelenkig"
+        }
+      ]
     },
     "G": {
       "type": "Festlager",
@@ -54,7 +158,17 @@
         0.7679465776293823,
         0.8486707566462167
       ],
-      "rotation": null
+      "rotation": null,
+      "connections": [
+        {
+          "to": "E",
+          "type": "gelenkig"
+        },
+        {
+          "to": "F",
+          "type": "gelenkig"
+        }
+      ]
     },
     "H": {
       "type": "Festlager",
@@ -62,7 +176,13 @@
         0.9081803005008348,
         0.21267893660531698
       ],
-      "rotation": null
+      "rotation": null,
+      "connections": [
+        {
+          "to": "D",
+          "type": "gelenkig"
+        }
+      ]
     }
   },
   "connections": [

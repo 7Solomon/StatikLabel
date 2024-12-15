@@ -267,3 +267,118 @@ def show_edit_node_properties(node_info):
         return node_info
     
     return node_info
+
+from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSlider, 
+                             QSpinBox, QCheckBox, QDialogButtonBox, QWidget, 
+                             QMessageBox, QPushButton)
+from PyQt5.QtCore import Qt
+
+def show_edit_node_properties_for_labeler(node_info):
+    """
+    Display a dialog for editing node properties with an improved layout and reset functionality.
+    
+    Args:
+        node_info (dict): Dictionary containing node information
+    
+    Returns:
+        dict: Updated node information
+    """
+    dialog = QDialog()
+    dialog.setWindowTitle("Edit Node Properties")
+    dialog.setMinimumWidth(400)  # Ensure a reasonable minimum width
+    
+    layout = QVBoxLayout()
+    property_inputs = {}
+
+    # Node ID Display (if available)
+    node_id_layout = QHBoxLayout()
+    node_id_label = QLabel("Node ID:")
+    node_id_value = QLabel(str(node_info.get('id', 'N/A')))
+    node_id_layout.addWidget(node_id_label)
+    node_id_layout.addWidget(node_id_value)
+    layout.addLayout(node_id_layout)
+
+    # Rotation Section
+    rotation_group = QWidget()
+    rotation_layout = QVBoxLayout()
+    
+    # Checkbox and Reset Button Layout
+    checkbox_reset_layout = QHBoxLayout()
+    checkbox = QCheckBox("Add Rotation Line")
+    reset_rotation_btn = QPushButton("Reset Rotation")
+    reset_rotation_btn.setToolTip("Set rotation to None")
+    
+    # Handle potential None value
+    value = node_info.get('rotation', None)
+    rotation_value = value if value is not None else 0
+    
+    # Slider and Spinbox Layout
+    slider_spinbox_layout = QHBoxLayout()
+    slider = QSlider(Qt.Horizontal)
+    slider.setRange(0, 360)
+    slider.setValue(int(rotation_value))
+    slider.setEnabled(False)
+
+    spin_box = QSpinBox()
+    spin_box.setRange(0, 360)
+    spin_box.setValue(int(rotation_value))
+    spin_box.setEnabled(False)
+
+    # Connect slider and spinbox
+    slider.valueChanged.connect(spin_box.setValue)
+    spin_box.valueChanged.connect(slider.setValue)
+    
+    # Enable/disable slider and spinbox based on checkbox state
+    def update_rotation_inputs(state):
+        enabled = state == Qt.Checked
+        slider.setEnabled(enabled)
+        spin_box.setEnabled(enabled)
+        reset_rotation_btn.setEnabled(enabled)
+
+    # Reset rotation function
+    def reset_rotation():
+        slider.setValue(0)
+        spin_box.setValue(0)
+        checkbox.setChecked(False)
+
+    # Connect signals
+    checkbox.stateChanged.connect(update_rotation_inputs)
+    reset_rotation_btn.clicked.connect(reset_rotation)
+    
+    # Add widgets to layouts
+    checkbox_reset_layout.addWidget(checkbox)
+    checkbox_reset_layout.addWidget(reset_rotation_btn)
+    
+    slider_spinbox_layout.addWidget(slider)
+    slider_spinbox_layout.addWidget(spin_box)
+    
+    rotation_layout.addLayout(checkbox_reset_layout)
+    rotation_layout.addLayout(slider_spinbox_layout)
+    
+    rotation_group.setLayout(rotation_layout)
+    layout.addWidget(rotation_group)
+
+    # Property tracking
+    property_inputs['rotation'] = (slider, spin_box, checkbox)
+
+    # Button Box
+    button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+    button_box.accepted.connect(dialog.accept)
+    button_box.rejected.connect(dialog.reject)
+    layout.addWidget(button_box)
+
+    dialog.setLayout(layout)
+   
+    # Execute the dialog
+    if dialog.exec_() == QDialog.Accepted:
+        # Update node_info with the values from input widgets
+        for key, widget in property_inputs.items():
+            try:
+                if key == 'rotation':
+                    slider, spin_box, checkbox = widget
+                    node_info[key] = slider.value() if checkbox.isChecked() else None
+            except Exception as e:
+                QMessageBox.warning(None, "Error", f"Could not process property {key}: {str(e)}")
+                return node_info
+    
+    return node_info

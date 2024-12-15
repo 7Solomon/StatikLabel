@@ -51,9 +51,15 @@ class ObjectPainter(QWidget):
         
     def normalize_system(self):
         data = self.shared_data.get_label_data()
-        
+        #print('---')
+        if data['objects'].get('A', None) is not None:
+            print(data['objects']['A']['rotation'])
         if not len(data.get('objects',[])) == 0 and not len(data.get('connections',[])) == 0:
             objects, connections = get_normalization(data)
+            #for key,_ in objects.items():
+            #    print(key)
+            #    print(_['rotation'])
+           
             #print(f'Objects: {objects}\nConnections: {connections}')
             self.shared_data.update_data('normalized_connections', connections)
             self.shared_data.update_data('normalized_objects', objects)
@@ -63,6 +69,7 @@ class ObjectPainter(QWidget):
         #self.init_variables()
 
     def init_variables(self):
+        self.pol_data = None
         data = self.shared_data.get_normalized_system()
         self.objects, self.connections = data.get('normalized_objects',{}), data.get('normalized_connections',[])
         self.feste_nodes = []    ### DELETE THIS BECAUSE OBSULET du kek
@@ -617,22 +624,27 @@ class ObjectPainter(QWidget):
             #print(f'Pol_data: {self.pol_data}')
 
     def load_feste_scheiben(self):
-        self.load_pol_data()
+        if not self.pol_data:
+            self.load_pol_data()
         if self.pol_data and self.objects:
-            self.static_data_of_scheiben = check_static_of_groud_scheiben(self.pol_data['pole_of_scheiben'],self.objects)
-            print(f'static_of_:{self.static_data_of_scheiben}')
+            self.static_data_of_scheiben = check_static_of_groud_scheiben(self.pol_data['pole_of_scheiben'],self.objects)  ## Komplett Quatsch
+            #feste_scheiben = [key for key, value in self.static_data_of_scheiben.items() if value['static'] == True]
+            #self.display_debug_text(f'Feste scheiben: {feste_scheiben}')
+            #print(f'static_of_:{self.static_data_of_scheiben}')
+    
     def load_visualization_of_polplan_data(self):
         self.load_pol_data()
         if self.objects and self.pol_data:
-            mismatches, weglinien, connecting_pols, is_valid = analyze_polplan(self.pol_data['pole'], self.objects)
-            self.visaulization_of_poplan  = {
-                'weglinien': weglinien,
-                'mismatches': mismatches,
-                'connecting_pols': connecting_pols,
-                'is_valid': is_valid
-            }
-            print(f'Pol_plan_vis: {self.visaulization_of_poplan}')
-            self.display_debug_text(f'Pol_plan_vis: {self.visaulization_of_poplan}')
+            analyze_polplan(self.pol_data['pole'], self.objects)
+            #mismatches, weglinien, connecting_pols, is_valid = analyze_polplan(self.pol_data['pole'], self.objects)
+            #self.visaulization_of_poplan  = {
+            #    'weglinien': weglinien,
+            #    'mismatches': mismatches,
+            #    'connecting_pols': connecting_pols,
+            #    'is_valid': is_valid
+            #}
+            #print(f'Pol_plan_vis: {self.visaulization_of_poplan}')
+            #self.display_debug_text(f'Pol_plan_vis: {self.visaulization_of_poplan}')
             
 
     def load_static_of_system(self):
