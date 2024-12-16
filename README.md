@@ -38,6 +38,18 @@ In der Normalisiertung werden ähnliche längen in den verschiedenen axen gefund
 
 
 
+#### Probleme
+
+* Die erkennung von scheiben ist für Normal- und Querkraftgelenke in manche Axen richtungen nicht Funktional und muss durch manuelle connections ausgebessert werden.
+
+* Mann muss noch viele dinge beachten da die Implementiereung nicht für Falsche benutzung ausgelegt ist. Dies ist etwas arbeit, auf die ich zurzeit noch nicht so viel Lust habe. 
+    - (z.b Man muss neue datentypen initialisieren bei manchen system da ich connections erst am ende hizugefügt habe)
+
+* Die Visualisierung der (Nodes)Lager ist noch richtungslos, das müsste man rein aus ästhetisch gründen ändern. Ist jedoch nicht für die Funktionsweise maßgebend.
+
+* Die Normalisierung funtioniert eigentlich immer sehr gut, außerdem in dem System as hier als Beispile gezeigt wird, dort werden manche Staebe als 2l angegeben obwohl sie nur 1l lang sind. Das ist nur bei diesem System, man müsste jedoch schauen ob die Normalisierung noch ein paar ungenauigkeiten beinhaltet.
+
+
 
 
 
