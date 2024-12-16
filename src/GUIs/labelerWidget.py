@@ -319,18 +319,14 @@ class ImageWidget(QLabel):
             # Rotation angle in degrees
             dx = pos.x() - obj_point.x()
             dy = pos.y() - obj_point.y()
-            
-            ##### HIER FALSCH
-            rotation_angle = 90 + math.degrees(math.atan2(dy, dx))   # Minus 90 da 0 vertical sein soll, da tan 0 Horizontal macht
-            if rotation_angle < 0:
-                rotation_angle += 360
-            self.rotation_angle = rotation_angle
+
+            ##### HIER FALSCH, jetzt richtig, da alles andere geändert
+            self.rotation_angle = math.degrees(math.atan2(dy, dx)) 
             self.update()
     def mouseReleaseEvent(self, event):
         if self.is_rotating:
             # Save the rotation angle to the object
-            print('---')
-            print(self.rotation_angle)
+
             self.objects[self.rotation_object]["rotation"] = self.rotation_angle
             self.is_rotating = False
             self.rotation_object = None

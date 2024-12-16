@@ -51,9 +51,6 @@ class ObjectPainter(QWidget):
         
     def normalize_system(self):
         data = self.shared_data.get_label_data()
-        #print('---')
-        if data['objects'].get('A', None) is not None:
-            print(data['objects']['A']['rotation'])
         if not len(data.get('objects',[])) == 0 and not len(data.get('connections',[])) == 0:
             objects, connections = get_normalization(data)
             #for key,_ in objects.items():
@@ -635,7 +632,12 @@ class ObjectPainter(QWidget):
     def load_visualization_of_polplan_data(self):
         self.load_pol_data()
         if self.objects and self.pol_data:
-            analyze_polplan(self.pol_data['pole'], self.objects)
+            result = analyze_polplan(self.pol_data['pole'], self.objects)
+            #formatted_string = "\n".join(
+            #    f"Scheibe {key}: ist in sich fest" if value else f"Scheibe {key}: ist nicht in sich fest"
+            #    for key, value in result.items()
+            #)
+            self.display_debug_text(result)
             #mismatches, weglinien, connecting_pols, is_valid = analyze_polplan(self.pol_data['pole'], self.objects)
             #self.visaulization_of_poplan  = {
             #    'weglinien': weglinien,
