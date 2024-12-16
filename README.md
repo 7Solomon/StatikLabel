@@ -47,7 +47,7 @@ In der Normalisiertung werden ähnliche längen in den verschiedenen axen gefund
 
 * Die Visualisierung der (Nodes)Lager ist noch richtungslos, das müsste man rein aus ästhetisch gründen ändern. Ist jedoch nicht für die Funktionsweise maßgebend.
 
-* Die Normalisierung funtioniert eigentlich immer sehr gut, außerdem in dem System as hier als Beispile gezeigt wird, dort werden manche Staebe als 2l angegeben obwohl sie nur 1l lang sind. Das ist nur bei diesem System, man müsste jedoch schauen ob die Normalisierung noch ein paar ungenauigkeiten beinhaltet.
+* Die Normalisierung funtioniert eigentlich immer sehr gut, außerdem in dem System as hier als Beispiel gezeigt wird, dort werden manche Staebe als 2l angegeben obwohl sie nur 1l lang sind. Das ist nur bei diesem System, man müsste jedoch schauen ob die Normalisierung noch ein paar ungenauigkeiten beinhaltet.
 
 
 
