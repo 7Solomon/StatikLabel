@@ -9,14 +9,14 @@ python main.py
 
 #### Label Tab
 Öffnet eine leere GUI, in die man in dem Explorermanager eine Label und Bild datei Laden kann: 
-<img src="assets/labeler.png" width="300px">
+<img src="assets/labeler.png" width="500px">
 
 
 In diesem Tab ist es möglich nodes zu setzen, diesen type werte zu geben wie z.B Festlager etc. und diese dann mit staeben zu Verbinden. 
 
 #### Normalized Tab
 Dieses System kann man sich dann Normalisiert anzeigen lassen und bearbeiten:
-<img src="assets/normalizer.png" width="300px">
+<img src="assets/normalizer.png" width="500px">
 
 
 In der Normalisiertung werden ähnliche längen in den verschiedenen axen gefunden und somit eine "perfektes" System erstellt, an dem es möglich ist die Berechnungen für einen Polplan zu machen.
