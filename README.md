@@ -38,7 +38,7 @@ In der Normalisiertung werden ähnliche längen in den verschiedenen axen gefund
 
 
 
-#### Probleme
+### Probleme
 
 * Die erkennung von scheiben ist für Normal- und Querkraftgelenke in manche Axen richtungen nicht Funktional und muss durch manuelle connections ausgebessert werden.
 
